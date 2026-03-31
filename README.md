@@ -2,6 +2,9 @@
 
 A modern full-stack web application for tracking, organizing, and managing your job applications throughout your job search journey.
 
+**🎯 Live Demo**: [https://jobtrackr.vercel.app](https://jobtrackr.vercel.app)
+**💻 GitHub**: [github.com/toluwalasefasoyin/jobtrackr](https://github.com/toluwalasefasoyin/jobtrackr)
+
 ## 📱 What JobTrackr Does
 
 JobTrackr simplifies job hunting by providing a centralized platform to:
@@ -21,9 +24,10 @@ JobTrackr simplifies job hunting by providing a centralized platform to:
 - **Spring Security 6.x** - JWT-based authentication
 - **Spring Data JPA** - Object-relational mapping with Hibernate
 - **Hibernate 6.6.45** - ORM framework
-- **MySQL 8.0** - Relational database
+- **PostgreSQL 14+** - Powerful open-source relational database
 - **HikariCP** - High-performance connection pooling
 - **Maven 3.9.12** - Build automation
+- **Docker** - Containerization for easy deployment
 - **Apache Tomcat 10.1** - Embedded web server
 
 ### Frontend
@@ -35,12 +39,28 @@ JobTrackr simplifies job hunting by providing a centralized platform to:
 - **React Router 7.13** - Client-side routing
 - **Context API** - State management for auth & user profile
 
-## 🚀 How to Run Locally
+## � Screenshots
+
+### Login & Registration
+Clean, modern authentication interface with email validation and secure password handling.
+
+### Dashboard with Statistics
+- Real-time statistics cards (Total Applications, Interviews, Offers, Rejected)
+- Status filter buttons for quick navigation
+- Comprehensive job applications table with edit/delete actions
+- User greeting with logout button
+
+### Add/Edit Application Modal
+- Form fields for company name, position title, application link, and status
+- Date picker for application date
+- Real-time form validation
+
+## �🚀 How to Run Locally
 
 ### Prerequisites
 - **Java 21 LTS** - Download from [Eclipse Adoptium](https://adoptium.net/temurin/releases/?version=21)
 - **Node.js 18+** - Download from [nodejs.org](https://nodejs.org/)
-- **MySQL 8.0** - Download from [mysql.com](https://dev.mysql.com/downloads/mysql/)
+- **PostgreSQL 14+** - Download from [postgresql.org](https://www.postgresql.org/download/)
 - **Git** - Download from [git-scm.com](https://git-scm.com/)
 
 ### Setup Steps
@@ -53,16 +73,16 @@ cd jobtrackr
 
 #### 2. Setup Database
 ```bash
-# Login to MySQL
-mysql -u root -p
+# Login to PostgreSQL
+psql -U postgres
 
-# Create database and user
+# Create database
 CREATE DATABASE jobtrackr;
-USE jobtrackr;
+\c jobtrackr
 
 # Create users table
 CREATE TABLE users (
-  id INT PRIMARY KEY AUTO_INCREMENT,
+  id SERIAL PRIMARY KEY,
   username VARCHAR(255) NOT NULL UNIQUE,
   email VARCHAR(255) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL
@@ -70,7 +90,7 @@ CREATE TABLE users (
 
 # Create job_applications table
 CREATE TABLE job_applications (
-  id INT PRIMARY KEY AUTO_INCREMENT,
+  id SERIAL PRIMARY KEY,
   user_id INT NOT NULL,
   company_name VARCHAR(255) NOT NULL,
   position_title VARCHAR(255) NOT NULL,
@@ -78,11 +98,11 @@ CREATE TABLE job_applications (
   status VARCHAR(50) NOT NULL DEFAULT 'APPLIED',
   date_applied DATE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-# Create index for better query performance
+# Create index for better performance
 CREATE INDEX idx_user_id ON job_applications(user_id);
 CREATE INDEX idx_status ON job_applications(status);
 ```
@@ -95,12 +115,13 @@ cd backend
 Update `src/main/resources/application.properties`:
 ```properties
 spring.application.name=demo
-spring.datasource.url=jdbc:mysql://localhost:3306/jobtrackr
-spring.datasource.username=root
+spring.datasource.url=jdbc:postgresql://localhost:5432/jobtrackr
+spring.datasource.username=postgres
 spring.datasource.password=your_password
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 server.port=8080
 ```
 
@@ -216,18 +237,28 @@ jobtrackr/
 
 ## 🚢 Deployment
 
-### Deploy Frontend to Vercel
-1. Push to GitHub (see below)
-2. Go to [vercel.com](https://vercel.com)
-3. Import project → Select `frontend` directory
-4. Deploy (automatic on every push to main)
+### Deploy Backend to Render
+1. Go to [render.com](https://render.com)
+2. **New +** → **Web Service**
+3. Connect your GitHub repo (`jobtrackr`)
+4. **Settings**:
+   - **Root Directory**: `backend`
+   - **Runtime**: `Docker`
+5. **Environment Variables**:
+   - `JWT_SECRET=am9idHJhY2tyX3N1cGVyX3NlY3JldF9rZXlfY2hhbmdlX2luX3Byb2R1Y3Rpb25fMjAyNA==`
+   - `SPRING_DATASOURCE_URL`: (Render will provide PostgreSQL connection)
+6. Click **Create Web Service**
 
-### Deploy Backend to Railway
-1. Go to [railway.app](https://railway.app)
-2. Create new project → Deploy from GitHub → Select this repository
-3. Set Root Directory to `backend`
-4. Railway auto-detects Maven and deploys
-5. Update frontend API URL to Railway backend URL
+You'll get a backend URL: `https://jobtrackr-api.onrender.com`
+
+### Deploy Frontend to Vercel
+1. Go to [vercel.com](https://vercel.com)
+2. **Add New** → **Project** → **Import Git Repository**
+3. Select your `jobtrackr` repo
+4. **Root Directory**: `./frontend`
+5. Click **Deploy**
+
+You'll get a frontend URL: `https://jobtrackr.vercel.app`
 
 ## 📤 Push to GitHub
 
