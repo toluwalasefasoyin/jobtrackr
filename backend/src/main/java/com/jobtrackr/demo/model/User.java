@@ -30,4 +30,23 @@ public class User {
 
     @NotBlank
     private String password;
+
+    @Column(nullable = true)
+    private String phone;
+
+    @Column(columnDefinition = "TEXT", nullable = true)
+    private String bio;
+
+    // Notification preferences
+    @Column(nullable = true)
+    private Boolean emailOnNewJob = true;
+
+    @Column(nullable = true)
+    private Boolean emailOnUpdate = true;
+
+    @Column(nullable = true)
+    private Boolean emailOnOffer = true;
+
+    @Column(nullable = true)
+    private Boolean pushNotifications = true;
 }
