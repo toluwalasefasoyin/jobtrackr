@@ -2,7 +2,7 @@
 
 A modern full-stack web application for tracking, organizing, and managing your job applications throughout your job search journey.
 
-**🎯 Live Demo**: [https://jobtrackr.vercel.app](https://jobtrackr.vercel.app)
+**🎯 Live Demo**: [https://jobtrackr-theta.vercel.app/login](https://jobtrackr.vercel.app)
 **💻 GitHub**: [github.com/toluwalasefasoyin/jobtrackr](https://github.com/toluwalasefasoyin/jobtrackr)
 
 ## 📱 What JobTrackr Does
