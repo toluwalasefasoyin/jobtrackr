@@ -14,7 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:5173", "https://jobtrackr-theta.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:5174", "https://jobtrackr-theta.vercel.app", "https://jobtrackr-fffq.onrender.com"}, allowCredentials = "true")
 public class NotificationController {
 
     private final NotificationService notificationService;

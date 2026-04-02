@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +37,10 @@ public class NotificationService {
 
         long unreadCount = notificationRepository.countByUserAndReadFalse(user);
 
+        // Format the timestamp consistently
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        String formattedTime = notification.getCreatedAt().format(formatter);
+
         messagingTemplate.convertAndSendToUser(
                 username,
                 "/queue/notifications",
@@ -43,7 +48,7 @@ public class NotificationService {
                         "id", notification.getId(),
                         "message", message,
                         "type", type,
-                        "createdAt", notification.getCreatedAt().toString(),
+                        "createdAt", formattedTime,
                         "unreadCount", unreadCount
                 )
         );
