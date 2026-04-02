@@ -17,6 +17,7 @@ public class JobApplicationService {
 
     private final JobApplicationRepository jobApplicationRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     private User getUser(String username) {
         return userRepository.findByUsername(username)
@@ -37,7 +38,15 @@ public class JobApplicationService {
         app.setNotes(request.getNotes());
         app.setJobLink(request.getJobLink());
         app.setUser(user);
-        return jobApplicationRepository.save(app);
+        JobApplication saved = jobApplicationRepository.save(app);
+
+        notificationService.sendNotification(
+                username,
+                "Application added — " + request.getCompany() + ", " + request.getRole(),
+                "CREATED"
+        );
+
+        return saved;
     }
 
     public JobApplication updateApplication(String username, Long id, JobApplicationRequest request) {
@@ -50,13 +59,28 @@ public class JobApplicationService {
         app.setDateApplied(request.getDateApplied());
         app.setNotes(request.getNotes());
         app.setJobLink(request.getJobLink());
-        return jobApplicationRepository.save(app);
+        JobApplication saved = jobApplicationRepository.save(app);
+
+        notificationService.sendNotification(
+                username,
+                "Application updated — " + request.getCompany() + " status changed to " + request.getStatus(),
+                "UPDATED"
+        );
+
+        return saved;
     }
 
     public void deleteApplication(String username, Long id) {
         User user = getUser(username);
         JobApplication app = jobApplicationRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new RuntimeException("Application not found"));
+        String company = app.getCompany();
         jobApplicationRepository.delete(app);
+
+        notificationService.sendNotification(
+                username,
+                "Application removed — " + company,
+                "DELETED"
+        );
     }
 }
