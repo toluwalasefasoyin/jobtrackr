@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import Navbar from '../components/Navbar';
 
 const Profile: React.FC = () => {
   const { username } = useAuth();
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const { theme, setTheme } = useTheme();
   const [notifications, setNotifications] = useState({
     emailOnNewJob: true,
     emailOnUpdate: true,
@@ -21,36 +22,29 @@ const Profile: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Load theme from localStorage on mount
+  // Load profile data from API on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('app-theme') as 'light' | 'dark' | 'system' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      applyTheme(savedTheme);
-    } else {
-      // Default to system
-      applyTheme('system');
-    }
-  }, []);
-
-  const applyTheme = (newTheme: 'light' | 'dark' | 'system') => {
-    const root = document.documentElement;
-    
-    if (newTheme === 'system') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      root.classList.toggle('dark', isDark);
-    } else if (newTheme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  };
-
-  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
-    setTheme(newTheme);
-    localStorage.setItem('app-theme', newTheme);
-    applyTheme(newTheme);
-  };
+    const loadProfile = async () => {
+      try {
+        const response = await axios.get('/user/profile');
+        setProfileForm({
+          fullName: response.data.fullName || username || 'User',
+          email: response.data.email || username || '',
+          phone: response.data.phone || '',
+          bio: response.data.bio || '',
+        });
+        setNotifications({
+          emailOnNewJob: response.data.emailOnNewJob ?? true,
+          emailOnUpdate: response.data.emailOnUpdate ?? true,
+          emailOnOffer: response.data.emailOnOffer ?? true,
+          pushNotifications: response.data.pushNotifications ?? true,
+        });
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+      }
+    };
+    loadProfile();
+  }, [username]);
 
   const handleProfileChange = (field: string, value: string) => {
     setProfileForm(prev => ({
@@ -75,6 +69,16 @@ const Profile: React.FC = () => {
         bio: profileForm.bio,
       });
       setSuccessMessage('Profile updated successfully!');
+      
+      // Fetch updated profile data
+      const response = await axios.get('/user/profile');
+      setProfileForm({
+        fullName: response.data.fullName || username || 'User',
+        email: response.data.email || username || '',
+        phone: response.data.phone || '',
+        bio: response.data.bio || '',
+      });
+      
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setSuccessMessage('Failed to update profile');
@@ -94,6 +98,16 @@ const Profile: React.FC = () => {
         pushNotifications: notifications.pushNotifications,
       });
       setSuccessMessage('Notification preferences saved!');
+      
+      // Fetch updated profile data to sync all fields
+      const response = await axios.get('/user/profile');
+      setNotifications({
+        emailOnNewJob: response.data.emailOnNewJob ?? true,
+        emailOnUpdate: response.data.emailOnUpdate ?? true,
+        emailOnOffer: response.data.emailOnOffer ?? true,
+        pushNotifications: response.data.pushNotifications ?? true,
+      });
+      
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setSuccessMessage('Failed to save preferences');
@@ -237,7 +251,7 @@ const Profile: React.FC = () => {
             {['light', 'dark', 'system'].map((t) => (
               <button
                 key={t}
-                onClick={() => handleThemeChange(t as 'light' | 'dark' | 'system')}
+                onClick={() => setTheme(t as 'light' | 'dark' | 'system')}
                 className={`p-6 rounded-xl transition-all ${
                   theme === t
                     ? 'bg-amber-500/30 border-2 border-amber-400/60 shadow-lg shadow-amber-500/30'
