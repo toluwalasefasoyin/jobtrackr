@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useWebSocket } from '../hooks/useWebSocket';
-import NotificationBell from '../components/NotificationBell';
-import type { Notification } from '../hooks/useWebSocket';
+import Navbar from '../components/Navbar';
+import SearchFilter from '../components/SearchFilter';
 import type { JobApplication } from '../types';
 
 const statusColors: Record<string, string> = {
@@ -20,8 +20,9 @@ const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingApp, setEditingApp] = useState<JobApplication | null>(null);
   const [filter, setFilter] = useState('ALL');
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [newNotification, setNewNotification] = useState<Notification | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const { logout, username, token } = useAuth();
   const navigate = useNavigate();
 
@@ -35,12 +36,7 @@ const Dashboard = () => {
   };
   const [form, setForm] = useState(emptyForm);
 
-  const handleNotification = useCallback((notification: Notification) => {
-    setNewNotification(notification);
-    setUnreadCount(notification.unreadCount);
-  }, []);
-
-  useWebSocket({ username, token, onNotification: handleNotification });
+  useWebSocket({ username, token });
 
   const fetchApplications = async () => {
     try {
@@ -54,18 +50,8 @@ const Dashboard = () => {
     }
   };
 
-  const fetchUnreadCount = async () => {
-    try {
-      const res = await api.get('/notifications/unread-count');
-      setUnreadCount(res.data.count);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   useEffect(() => {
     fetchApplications();
-    fetchUnreadCount();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,7 +90,35 @@ const Dashboard = () => {
     setShowModal(true);
   };
 
-  const filtered = filter === 'ALL' ? applications : applications.filter(a => a.status === filter);
+  // Apply all filters: status, search, and date range
+  const filtered = applications.filter((app) => {
+    // Status filter
+    if (filter !== 'ALL' && app.status !== filter) return false;
+
+    // Search filter (company or role)
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      if (
+        !app.company.toLowerCase().includes(query) &&
+        !app.role.toLowerCase().includes(query)
+      ) {
+        return false;
+      }
+    }
+
+    // Date range filter
+    if (startDate && app.dateApplied < startDate) return false;
+    if (endDate && app.dateApplied > endDate) return false;
+
+    return true;
+  });
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setStartDate('');
+    setEndDate('');
+    setFilter('ALL');
+  };
 
   const stats = {
     total: applications.length,
@@ -122,26 +136,9 @@ const Dashboard = () => {
         <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-indigo-600/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      {/* Navbar */}
-      <nav className="relative z-20 backdrop-blur-md border-b border-purple-500/20 px-6 py-4 flex items-center justify-between bg-gradient-to-r from-purple-900/30 to-blue-900/30">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">JobTrackr</h1>
-        <div className="flex items-center gap-4">
-          <NotificationBell
-            unreadCount={unreadCount}
-            newNotification={newNotification}
-            onOpen={() => setUnreadCount(0)}
-          />
-          <span className="text-purple-100 text-sm font-medium">Hey, {username}</span>
-          <button
-            onClick={() => { logout(); navigate('/login'); }}
-            className="text-sm text-purple-200 hover:text-purple-100 transition-colors duration-200"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
+      <Navbar />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-8">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 py-8 pt-24">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
@@ -164,6 +161,17 @@ const Dashboard = () => {
             </div>
           ))}
         </div>
+
+        {/* Search and Filters */}
+        <SearchFilter
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
+          endDate={endDate}
+          onEndDateChange={setEndDate}
+          onReset={handleResetFilters}
+        />
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

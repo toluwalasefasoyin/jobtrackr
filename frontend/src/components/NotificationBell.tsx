@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import type { Notification } from '../hooks/useWebSocket';
 
-interface Props {
-  unreadCount: number;
-  newNotification: Notification | null;
-  onOpen: () => void;
-}
+const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:8080';
 
 const typeColors: Record<string, string> = {
   CREATED: '#10b981',
@@ -20,12 +19,59 @@ const typeIcons: Record<string, string> = {
   DELETED: '✕',
 };
 
-const NotificationBell = ({ unreadCount, newNotification, onOpen }: Props) => {
+const NotificationBell = () => {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const clientRef = useRef<Client | null>(null);
+  const { username, token } = useAuth();
 
+  // Connect to WebSocket
+  const connectWebSocket = useCallback(() => {
+    if (!username || !token) return;
+    if (clientRef.current) return; // Already connected
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS(`${WS_URL}/ws`),
+      connectHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+      reconnectDelay: 5000,
+      onConnect: () => {
+        console.log('NotificationBell WebSocket connected');
+        client.subscribe(`/user/${username}/queue/notifications`, message => {
+          const notification: Notification = JSON.parse(message.body);
+          setNotifications(prev => [notification, ...prev].slice(0, 10));
+          setUnreadCount(notification.unreadCount || 0);
+        });
+      },
+      onDisconnect: () => {
+        console.log('NotificationBell WebSocket disconnected');
+        clientRef.current = null;
+      },
+      onStompError: frame => {
+        console.error('STOMP error', frame);
+      },
+    });
+
+    client.activate();
+    clientRef.current = client;
+  }, [username, token]);
+
+  useEffect(() => {
+    connectWebSocket();
+
+    return () => {
+      if (clientRef.current) {
+        clientRef.current.deactivate();
+        clientRef.current = null;
+      }
+    };
+  }, [connectWebSocket]);
+
+  // Handle click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -36,12 +82,6 @@ const NotificationBell = ({ unreadCount, newNotification, onOpen }: Props) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (newNotification) {
-      setNotifications(prev => [newNotification as any, ...prev].slice(0, 10));
-    }
-  }, [newNotification]);
-
   const handleOpen = async () => {
     setOpen(!open);
     if (!open) {
@@ -49,8 +89,8 @@ const NotificationBell = ({ unreadCount, newNotification, onOpen }: Props) => {
       try {
         const res = await api.get('/notifications');
         setNotifications(res.data.slice(0, 10));
-        onOpen();
         await api.put('/notifications/mark-all-read');
+        setUnreadCount(0);
       } catch (err) {
         console.error(err);
       } finally {
@@ -98,7 +138,7 @@ const NotificationBell = ({ unreadCount, newNotification, onOpen }: Props) => {
   };
 
   return (
-    <div ref={dropdownRef} style={{ position: 'relative' }}>
+    <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
       {/* Bell button */}
       <button
         onClick={handleOpen}
@@ -115,6 +155,7 @@ const NotificationBell = ({ unreadCount, newNotification, onOpen }: Props) => {
           cursor: 'pointer',
           transition: 'all 0.2s',
           fontSize: '1.2rem',
+          padding: 0,
         }}
         onMouseEnter={e => {
           e.currentTarget.style.background = 'rgba(168,85,247,0.2)';

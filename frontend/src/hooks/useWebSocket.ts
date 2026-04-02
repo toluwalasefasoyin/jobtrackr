@@ -15,7 +15,7 @@ interface Notification {
 interface UseWebSocketProps {
   username: string | null;
   token: string | null;
-  onNotification: (notification: Notification) => void;
+  onNotification?: (notification: Notification) => void;
 }
 
 export const useWebSocket = ({ username, token, onNotification }: UseWebSocketProps) => {
@@ -34,7 +34,9 @@ export const useWebSocket = ({ username, token, onNotification }: UseWebSocketPr
         console.log('WebSocket connected');
         client.subscribe(`/user/${username}/queue/notifications`, message => {
           const notification: Notification = JSON.parse(message.body);
-          onNotification(notification);
+          if (onNotification) {
+            onNotification(notification);
+          }
         });
       },
       onDisconnect: () => {
