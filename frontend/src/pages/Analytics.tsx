@@ -15,6 +15,7 @@ import {
   Cell,
 } from 'recharts';
 
+import axios from '../api/axios';
 import Navbar from '../components/Navbar';
 
 interface DailyStats {
@@ -40,44 +41,66 @@ const Analytics: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Hardcoded sample data for now (backend endpoints to be added)
+  // Fetch real data from backend
   useEffect(() => {
-    try {
-      // Sample daily data
-      const sampleDaily: DailyStats[] = [
-        { date: 'Jan 1', count: 2 },
-        { date: 'Jan 2', count: 3 },
-        { date: 'Jan 3', count: 1 },
-        { date: 'Jan 4', count: 5 },
-        { date: 'Jan 5', count: 4 },
-        { date: 'Jan 6', count: 6 },
-        { date: 'Jan 7', count: 3 },
-      ];
+    const fetchAnalytics = async () => {
+      try {
+        const res = await axios.get('/applications');
+        const applications = res.data;
 
-      // Sample status breakdown
-      const sampleStatus: StatusBreakdown[] = [
-        { name: 'Applied', value: 45, color: '#3b82f6' },
-        { name: 'Interview', value: 12, color: '#f59e0b' },
-        { name: 'Offer', value: 5, color: '#10b981' },
-        { name: 'Rejected', value: 8, color: '#ef4444' },
-      ];
+        // Calculate status breakdown
+        const statusCounts = {
+          APPLIED: applications.filter((a: any) => a.status === 'APPLIED').length,
+          INTERVIEW: applications.filter((a: any) => a.status === 'INTERVIEW').length,
+          OFFER: applications.filter((a: any) => a.status === 'OFFER').length,
+          REJECTED: applications.filter((a: any) => a.status === 'REJECTED').length,
+        };
 
-      // Sample monthly data
-      const sampleMonthly: MonthlyStats[] = [
-        { month: 'Nov', applications: 8 },
-        { month: 'Dec', applications: 15 },
-        { month: 'Jan', applications: 22 },
-        { month: 'Feb', applications: 18 },
-      ];
+        const status: StatusBreakdown[] = [
+          { name: 'Applied', value: statusCounts.APPLIED, color: '#3b82f6' },
+          { name: 'Interview', value: statusCounts.INTERVIEW, color: '#f59e0b' },
+          { name: 'Offer', value: statusCounts.OFFER, color: '#10b981' },
+          { name: 'Rejected', value: statusCounts.REJECTED, color: '#ef4444' },
+        ];
 
-      setDailyData(sampleDaily);
-      setStatusData(sampleStatus);
-      setMonthlyData(sampleMonthly);
-      setLoading(false);
-    } catch (err) {
-      setError('Failed to load analytics data');
-      setLoading(false);
-    }
+        // Group applications by date
+        const dateMap = new Map<string, number>();
+        applications.forEach((app: any) => {
+          const date = new Date(app.dateApplied).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+          });
+          dateMap.set(date, (dateMap.get(date) || 0) + 1);
+        });
+        const daily: DailyStats[] = Array.from(dateMap, ([date, count]) => ({
+          date,
+          count,
+        })).slice(-7); // Last 7 days
+
+        // Group by month
+        const monthMap = new Map<string, number>();
+        applications.forEach((app: any) => {
+          const month = new Date(app.dateApplied).toLocaleDateString('en-US', {
+            month: 'short',
+          });
+          monthMap.set(month, (monthMap.get(month) || 0) + 1);
+        });
+        const monthly: MonthlyStats[] = Array.from(monthMap, ([month, applications]) => ({
+          month,
+          applications,
+        }));
+
+        setDailyData(daily);
+        setStatusData(status);
+        setMonthlyData(monthly);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load analytics data');
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
   }, []);
 
   // Calculate metrics

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 
 const Profile: React.FC = () => {
   const { username } = useAuth();
-  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   const [notifications, setNotifications] = useState({
     emailOnNewJob: true,
     emailOnUpdate: true,
@@ -12,12 +13,44 @@ const Profile: React.FC = () => {
     pushNotifications: true,
   });
   const [profileForm, setProfileForm] = useState({
-    fullName: 'John Doe',
+    fullName: username || 'User',
     email: username || '',
-    phone: '+1 (555) 123-4567',
-    bio: 'Job seeker actively looking for software engineering opportunities',
+    phone: '',
+    bio: '',
   });
   const [successMessage, setSuccessMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Load theme from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('app-theme') as 'light' | 'dark' | 'system' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      applyTheme(savedTheme);
+    } else {
+      // Default to system
+      applyTheme('system');
+    }
+  }, []);
+
+  const applyTheme = (newTheme: 'light' | 'dark' | 'system') => {
+    const root = document.documentElement;
+    
+    if (newTheme === 'system') {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.classList.toggle('dark', isDark);
+    } else if (newTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  };
+
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme);
+    localStorage.setItem('app-theme', newTheme);
+    applyTheme(newTheme);
+  };
 
   const handleProfileChange = (field: string, value: string) => {
     setProfileForm(prev => ({
@@ -33,14 +66,41 @@ const Profile: React.FC = () => {
     }));
   };
 
-  const handleSaveProfile = () => {
-    setSuccessMessage('Profile updated successfully!');
-    setTimeout(() => setSuccessMessage(''), 3000);
+  const handleSaveProfile = async () => {
+    setLoading(true);
+    try {
+      await axios.put('/user/profile', {
+        fullName: profileForm.fullName,
+        phone: profileForm.phone,
+        bio: profileForm.bio,
+      });
+      setSuccessMessage('Profile updated successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setSuccessMessage('Failed to update profile');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSaveNotifications = () => {
-    setSuccessMessage('Notification preferences saved!');
-    setTimeout(() => setSuccessMessage(''), 3000);
+  const handleSaveNotifications = async () => {
+    setLoading(true);
+    try {
+      await axios.put('/user/preferences', {
+        emailOnNewJob: notifications.emailOnNewJob,
+        emailOnUpdate: notifications.emailOnUpdate,
+        emailOnOffer: notifications.emailOnOffer,
+        pushNotifications: notifications.pushNotifications,
+      });
+      setSuccessMessage('Notification preferences saved!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setSuccessMessage('Failed to save preferences');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -124,9 +184,10 @@ const Profile: React.FC = () => {
 
           <button
             onClick={handleSaveProfile}
-            className="bg-gradient-to-r from-purple-500 via-blue-600 to-purple-600 hover:from-purple-600 hover:via-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-purple-500/50"
+            disabled={loading}
+            className="bg-gradient-to-r from-purple-500 via-blue-600 to-purple-600 hover:from-purple-600 hover:via-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-purple-500/50"
           >
-            Save Profile Changes
+            {loading ? 'Saving...' : 'Save Profile Changes'}
           </button>
         </div>
 
@@ -161,9 +222,10 @@ const Profile: React.FC = () => {
 
           <button
             onClick={handleSaveNotifications}
-            className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-blue-500/50"
+            disabled={loading}
+            className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-blue-500/50"
           >
-            Save Notification Settings
+            {loading ? 'Saving...' : 'Save Notification Settings'}
           </button>
         </div>
 
@@ -172,10 +234,10 @@ const Profile: React.FC = () => {
           <h2 className="text-2xl font-bold text-white mb-6">Theme</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {['light', 'dark', 'auto'].map((t) => (
+            {['light', 'dark', 'system'].map((t) => (
               <button
                 key={t}
-                onClick={() => setTheme(t as 'light' | 'dark' | 'auto')}
+                onClick={() => handleThemeChange(t as 'light' | 'dark' | 'system')}
                 className={`p-6 rounded-xl transition-all ${
                   theme === t
                     ? 'bg-amber-500/30 border-2 border-amber-400/60 shadow-lg shadow-amber-500/30'
@@ -183,15 +245,15 @@ const Profile: React.FC = () => {
                 }`}
               >
                 <div className="text-2xl mb-2">
-                  {t === 'light' ? '☀️' : t === 'dark' ? '🌙' : '⚙️'}
+                  {t === 'light' ? '☀️' : t === 'dark' ? '🌙' : '💻'}
                 </div>
-                <p className="font-semibold text-white capitalize">{t} Mode</p>
+                <p className="font-semibold text-white capitalize">{t === 'system' ? 'System' : t} Mode</p>
                 <p className="text-xs text-gray-400 mt-1">
                   {t === 'light'
                     ? 'Light theme'
                     : t === 'dark'
                     ? 'Dark theme'
-                    : 'System default'}
+                    : 'Follow system'}
                 </p>
               </button>
             ))}
