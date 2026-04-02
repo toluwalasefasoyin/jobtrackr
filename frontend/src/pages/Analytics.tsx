@@ -16,7 +16,6 @@ import {
 } from 'recharts';
 
 import axios from '../api/axios';
-import Navbar from '../components/Navbar';
 
 interface DailyStats {
   date: string;
@@ -57,10 +56,10 @@ const Analytics: React.FC = () => {
         };
 
         const status: StatusBreakdown[] = [
-          { name: 'Applied', value: statusCounts.APPLIED, color: '#3b82f6' },
-          { name: 'Interview', value: statusCounts.INTERVIEW, color: '#f59e0b' },
-          { name: 'Offer', value: statusCounts.OFFER, color: '#10b981' },
-          { name: 'Rejected', value: statusCounts.REJECTED, color: '#ef4444' },
+          { name: 'Applied', value: statusCounts.APPLIED, color: '#0040a1' },
+          { name: 'Interview', value: statusCounts.INTERVIEW, color: '#663f00' },
+          { name: 'Offer', value: statusCounts.OFFER, color: '#2e7d32' },
+          { name: 'Rejected', value: statusCounts.REJECTED, color: '#ba1a1a' },
         ];
 
         // Group applications by date
@@ -124,61 +123,60 @@ const Analytics: React.FC = () => {
       : '0';
 
   if (loading)
-    return <div className="text-center text-white p-8">Loading analytics...</div>;
-  if (error) return <div className="text-center text-red-400 p-8">{error}</div>;
+    return <div className="text-center text-on-surface dark:text-inverse-on-surface p-8 font-body">Loading analytics...</div>;
+  if (error) return <div className="text-center text-error p-8 font-body">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      <Navbar />
-      <div className="p-8 pt-24">
+    <div className="min-h-screen bg-surface dark:bg-inverse-surface py-8 px-6">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-white mb-2">Analytics Dashboard</h1>
-          <p className="text-gray-400">Track your job application metrics and trends</p>
+        <div className="mb-10">
+          <h1 className="text-4xl font-bold font-headline text-on-surface dark:text-inverse-on-surface mb-2">Analytics</h1>
+          <p className="text-on-surface-variant font-body">Track your job application metrics and trends</p>
         </div>
 
         {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition">
-            <div className="text-gray-400 text-sm font-medium mb-2">Total Applications</div>
-            <div className="text-3xl font-bold text-white">{totalApplications}</div>
-            <p className="text-gray-500 text-xs mt-2">All time</p>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+          <div className="bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/20 rounded-xl p-6 hover:bg-surface-container transition">
+            <div className="text-on-surface-variant font-label text-[11px] uppercase tracking-widest font-semibold mb-2">Total Applications</div>
+            <div className="text-3xl font-bold font-headline text-on-surface dark:text-inverse-on-surface">{totalApplications}</div>
+            <p className="text-on-surface-variant text-xs mt-2 font-body">All time</p>
           </div>
 
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition">
-            <div className="text-gray-400 text-sm font-medium mb-2">Interview Rate</div>
-            <div className="text-3xl font-bold text-amber-400">{interviewRate}%</div>
-            <p className="text-gray-500 text-xs mt-2">Interviews to Applications</p>
+          <div className="bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/20 rounded-xl p-6 hover:bg-surface-container transition">
+            <div className="text-on-surface-variant font-label text-[11px] uppercase tracking-widest font-semibold mb-2">Interview Rate</div>
+            <div className="text-3xl font-bold font-headline text-tertiary">{interviewRate}%</div>
+            <p className="text-on-surface-variant text-xs mt-2 font-body">Interviews to Applications</p>
           </div>
 
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition">
-            <div className="text-gray-400 text-sm font-medium mb-2">Success Rate</div>
-            <div className="text-3xl font-bold text-green-400">{successRate}%</div>
-            <p className="text-gray-500 text-xs mt-2">Offers to Applications</p>
+          <div className="bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/20 rounded-xl p-6 hover:bg-surface-container transition">
+            <div className="text-on-surface-variant font-label text-[11px] uppercase tracking-widest font-semibold mb-2">Success Rate</div>
+            <div className="text-3xl font-bold font-headline text-success">{successRate}%</div>
+            <p className="text-on-surface-variant text-xs mt-2 font-body">Offers to Applications</p>
           </div>
 
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition">
-            <div className="text-gray-400 text-sm font-medium mb-2">Pending</div>
-            <div className="text-3xl font-bold text-blue-400">
+          <div className="bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/20 rounded-xl p-6 hover:bg-surface-container transition">
+            <div className="text-on-surface-variant font-label text-[11px] uppercase tracking-widest font-semibold mb-2">Pending</div>
+            <div className="text-3xl font-bold font-headline text-primary">
               {statusData.find((s) => s.name === 'Applied')?.value || 0}
             </div>
-            <p className="text-gray-500 text-xs mt-2">Awaiting Response</p>
+            <p className="text-on-surface-variant text-xs mt-2 font-body">Awaiting Response</p>
           </div>
         </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Daily Applications Chart */}
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Applications This Week</h2>
+          <div className="bg-surface-container-lowest dark:bg-surface-container-low border border-outline-variant/20 rounded-xl p-6">
+            <h2 className="text-xl font-bold font-headline text-on-surface dark:text-inverse-on-surface mb-4">Applications This Week</h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dailyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" />
-                <YAxis stroke="rgba(255,255,255,0.5)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                <XAxis dataKey="date" stroke="#0040a1" />
+                <YAxis stroke="#0040a1" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    backgroundColor: 'hsl(var(--primary))',
                     border: '1px solid rgba(255,255,255,0.2)',
                     borderRadius: '8px',
                   }}
@@ -188,9 +186,9 @@ const Analytics: React.FC = () => {
                 <Line
                   type="monotone"
                   dataKey="count"
-                  stroke="#8b5cf6"
+                  stroke="#0040a1"
                   strokeWidth={2}
-                  dot={{ fill: '#8b5cf6', r: 4 }}
+                  dot={{ fill: '#0040a1', r: 4 }}
                   activeDot={{ r: 6 }}
                   name="Applications"
                 />
@@ -199,8 +197,8 @@ const Analytics: React.FC = () => {
           </div>
 
           {/* Status Breakdown Pie Chart */}
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Status Distribution</h2>
+          <div className="bg-surface-container-lowest dark:bg-surface-container-low border border-outline-variant/20 rounded-xl p-6">
+            <h2 className="text-xl font-bold font-headline text-on-surface dark:text-inverse-on-surface mb-4">Status Distribution</h2>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -231,13 +229,13 @@ const Analytics: React.FC = () => {
         </div>
 
         {/* Monthly Chart */}
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Monthly Trends</h2>
+        <div className="bg-surface-container-lowest dark:bg-surface-container-low border border-outline-variant/20 rounded-xl p-6">
+          <h2 className="text-xl font-bold font-headline text-on-surface dark:text-inverse-on-surface mb-4">Monthly Trends</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-              <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" />
-              <YAxis stroke="rgba(255,255,255,0.5)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+              <XAxis dataKey="month" stroke="#0040a1" />
+              <YAxis stroke="#0040a1" />
               <Tooltip
                 contentStyle={{
                   backgroundColor: 'rgba(0,0,0,0.8)',
@@ -249,7 +247,7 @@ const Analytics: React.FC = () => {
               <Legend />
               <Bar
                 dataKey="applications"
-                fill="#a78bfa"
+                fill="#0040a1"
                 radius={[8, 8, 0, 0]}
                 name="Applications"
               />

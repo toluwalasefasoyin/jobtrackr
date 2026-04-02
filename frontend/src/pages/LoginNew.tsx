@@ -4,9 +4,8 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import type { AuthResponse } from '../types';
 
-const Register = () => {
+const Login = () => {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -19,12 +18,13 @@ const Register = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await api.post<AuthResponse>('/auth/register', { username, email, password });
-      login(res.data.token);
+      const res = await api.post<AuthResponse>('/auth/login', { username, password });
+      localStorage.setItem('token', res.data.token);
       localStorage.setItem('username', username);
-      navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      login(res.data.token);
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setError('Invalid username or password');
     } finally {
       setLoading(false);
     }
@@ -48,10 +48,11 @@ const Register = () => {
               <p className="font-headline font-semibold text-on-surface-variant text-lg">The Executive Curator</p>
             </div>
             <div className="z-10">
-              <h2 className="font-headline font-bold text-3xl text-on-surface leading-tight mb-4">Join the curator community.</h2>
-              <p className="text-on-surface-variant leading-relaxed max-w-xs">Create your account and start managing your executive career journey today.</p>
+              <h2 className="font-headline font-bold text-3xl text-on-surface leading-tight mb-4">Master your career journey with editorial precision.</h2>
+              <p className="text-on-surface-variant leading-relaxed max-w-xs">Organize, track, and secure your next executive role with our calm, authoritative interface.</p>
             </div>
             <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-surface-container-highest rounded-2xl -rotate-12 opacity-40"></div>
+            <div className="absolute -bottom-4 -right-4 w-48 h-48 bg-primary-container/10 rounded-2xl -rotate-6"></div>
           </div>
 
           {/* Form Side */}
@@ -62,8 +63,8 @@ const Register = () => {
               </div>
 
               <header className="mb-10">
-                <h3 className="font-headline font-bold text-2xl text-on-surface mb-2">Create Account</h3>
-                <p className="text-on-surface-variant text-sm">Join the platform to start curating your career.</p>
+                <h3 className="font-headline font-bold text-2xl text-on-surface mb-2">Welcome Back</h3>
+                <p className="text-on-surface-variant text-sm">Please enter your details to access your curator dashboard.</p>
               </header>
 
               {error && (
@@ -80,32 +81,23 @@ const Register = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="w-full bg-surface-container-low border-none rounded-lg px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-outline-variant"
-                    placeholder="Choose a username"
+                    placeholder="curator@executive.com"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant ml-1 font-semibold">Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-surface-container-low border-none rounded-lg px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-outline-variant"
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant ml-1 font-semibold">Password</label>
+                  <div className="flex justify-between items-center px-1">
+                    <label className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant font-semibold">Password</label>
+                    <a className="text-xs text-primary font-semibold hover:underline" href="#">Forgot?</a>
+                  </div>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full bg-surface-container-low border-none rounded-lg px-4 py-4 pr-12 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-outline-variant"
-                      placeholder="Create a password"
+                      placeholder="••••••••"
                       required
                     />
                     <button
@@ -118,12 +110,21 @@ const Register = () => {
                   </div>
                 </div>
 
+                <div className="flex items-center space-x-3 px-1">
+                  <input
+                    type="checkbox"
+                    id="remember"
+                    className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary"
+                  />
+                  <label className="text-sm text-on-surface-variant" htmlFor="remember">Remember me for 30 days</label>
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading}
                   className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold py-4 rounded-full transition-all active:scale-[0.98] shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Creating account...' : 'Create Account'}
+                  {loading ? 'Signing in...' : 'Sign In to Dashboard'}
                 </button>
               </form>
 
@@ -133,23 +134,23 @@ const Register = () => {
                   <div className="w-full border-t border-outline-variant/30"></div>
                 </div>
                 <div className="relative flex justify-center text-xs uppercase tracking-widest bg-white dark:bg-inverse-surface px-4">
-                  <span className="text-on-surface-variant">Or sign up with</span>
+                  <span className="text-on-surface-variant">Or continue with</span>
                 </div>
               </div>
 
               {/* Social Button */}
-              <div className="grid grid-cols-1 gap-4 mb-8">
+              <div className="grid grid-cols-1 gap-4">
                 <button className="flex items-center justify-center space-x-3 w-full bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant font-semibold py-4 rounded-full transition-all border border-outline-variant/10">
-                  <span className="material-symbols-outlined">account_circle</span>
-                  <span>Sign up with Google</span>
+                  <img alt="Google" className="w-5 h-5" src="https://www.gstatic.com/firebaseapp/v8.10.0/images/favicon.png" />
+                  <span>Sign in with Google</span>
                 </button>
               </div>
 
-              <footer className="text-center">
+              <footer className="mt-10 text-center">
                 <p className="text-on-surface-variant text-sm">
-                  Already have an account?{' '}
-                  <Link to="/login" className="text-primary font-bold hover:underline">
-                    Sign in
+                  New to the platform?{' '}
+                  <Link to="/register" className="text-primary font-bold hover:underline">
+                    Register Account
                   </Link>
                 </p>
               </footer>
@@ -175,4 +176,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;

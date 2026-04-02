@@ -3,15 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useWebSocket } from '../hooks/useWebSocket';
-import Navbar from '../components/Navbar';
 import SearchFilter from '../components/SearchFilter';
 import type { JobApplication } from '../types';
 
 const statusColors: Record<string, string> = {
-  APPLIED: 'bg-blue-500/25 text-blue-200 border border-blue-400/50 font-semibold',
-  INTERVIEW: 'bg-amber-500/25 text-amber-200 border border-amber-400/50 font-semibold',
-  OFFER: 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/50 font-semibold',
-  REJECTED: 'bg-red-500/25 text-red-200 border border-red-400/50 font-semibold',
+  APPLIED: 'bg-primary/20 text-primary border border-primary/40 font-semibold',
+  INTERVIEW: 'bg-tertiary/20 text-tertiary border border-tertiary/40 font-semibold',
+  OFFER: 'bg-success-container text-on-success-container border border-success/40 font-semibold',
+  REJECTED: 'bg-error-container text-on-error-container border border-error/40 font-semibold',
 };
 
 const Dashboard = () => {
@@ -128,36 +127,33 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white overflow-x-hidden">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '.5s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-indigo-600/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-      </div>
+    <div className="min-h-screen bg-surface dark:bg-inverse-surface px-6 py-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <header className="mb-8">
+          <h1 className="font-headline font-bold text-on-surface dark:text-inverse-on-surface text-4xl mb-2">Dashboard</h1>
+          <p className="text-on-surface-variant font-body text-base">Track and manage all your job applications in one place.</p>
+        </header>
 
-      <Navbar />
-
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-8 pt-24">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total Applied', value: stats.total, color: 'from-blue-500/30 to-blue-600/20', textColor: 'text-blue-200', border: 'border-blue-400/40', icon: '📝', filterValue: 'ALL' },
-            { label: 'Interviews', value: stats.interview, color: 'from-amber-500/30 to-amber-600/20', textColor: 'text-amber-200', border: 'border-amber-400/40', icon: '💬', filterValue: 'INTERVIEW' },
-            { label: 'Offers', value: stats.offer, color: 'from-emerald-500/30 to-emerald-600/20', textColor: 'text-emerald-200', border: 'border-emerald-400/40', icon: '✓', filterValue: 'OFFER' },
-            { label: 'Rejected', value: stats.rejected, color: 'from-red-500/30 to-red-600/20', textColor: 'text-red-200', border: 'border-red-400/40', icon: '✕', filterValue: 'REJECTED' },
+            { label: 'Total Applied', value: stats.total, colorClass: 'text-primary', icon: 'assignment', filterValue: 'ALL' },
+            { label: 'Interviews', value: stats.interview, colorClass: 'text-tertiary', icon: 'chat', filterValue: 'INTERVIEW' },
+            { label: 'Offers', value: stats.offer, colorClass: 'text-success', icon: 'check_circle', filterValue: 'OFFER' },
+            { label: 'Rejected', value: stats.rejected, colorClass: 'text-error', icon: 'cancel', filterValue: 'REJECTED' },
           ].map((stat) => (
             <div 
               key={stat.label} 
               onClick={() => setFilter(stat.filterValue)}
-              className={`backdrop-blur-xl bg-gradient-to-br ${stat.color} border ${stat.border} rounded-2xl p-6 hover:scale-105 transition-all duration-300 cursor-pointer group ${
-                filter === stat.filterValue ? 'ring-2 ring-purple-400/60 shadow-lg shadow-purple-500/30' : 'hover:shadow-lg hover:shadow-purple-500/20'
+              className={`bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/20 rounded-xl p-6 hover:bg-surface-container dark:hover:bg-surface-container-highest cursor-pointer transition-all ${
+                filter === stat.filterValue ? 'ring-2 ring-primary shadow-md' : ''
               }`}>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-purple-100/70 text-xs tracking-widest uppercase font-semibold">{stat.label}</p>
-                <span className="text-xl opacity-60 group-hover:opacity-100 transition-opacity">{stat.icon}</span>
+              <div className="flex items-center justify-between mb-4">
+                <p className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant font-semibold">{stat.label}</p>
+                <span className="material-symbols-outlined text-on-surface-variant">{stat.icon}</span>
               </div>
-              <p className={`text-4xl font-bold ${stat.textColor}`}>{stat.value}</p>
+              <p className={`text-3xl font-bold ${stat.colorClass}`}>{stat.value}</p>
             </div>
           ))}
         </div>
@@ -173,17 +169,17 @@ const Dashboard = () => {
           onReset={handleResetFilters}
         />
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex gap-2">
+        {/* Filter Buttons and Add Button */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+          <div className="flex gap-2 flex-wrap">
             {['ALL', 'APPLIED', 'INTERVIEW', 'OFFER', 'REJECTED'].map((s) => (
               <button
                 key={s}
                 onClick={() => setFilter(s)}
-                className={`px-4 py-2.5 rounded-full text-sm font-semibold backdrop-blur-md transition-all duration-300 transform hover:scale-105 ${
+                className={`px-4 py-2 rounded-full text-sm font-label font-semibold transition-all ${
                   filter === s
-                    ? 'bg-gradient-to-r from-purple-500 via-blue-500 to-purple-600 text-white shadow-lg shadow-purple-500/40 scale-105'
-                    : 'bg-white/5 border border-purple-300/30 text-purple-100 hover:bg-white/10 hover:border-purple-300/50'
+                    ? 'bg-primary text-on-primary shadow-md'
+                    : 'bg-surface-container-low text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container'
                 }`}
               >
                 {s}
@@ -192,53 +188,53 @@ const Dashboard = () => {
           </div>
           <button
             onClick={() => { setEditingApp(null); setForm(emptyForm); setShowModal(true); }}
-            className="bg-gradient-to-r from-purple-500 via-blue-600 to-purple-600 hover:from-purple-600 hover:via-blue-700 hover:to-purple-700 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95 transform"
+            className="bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full font-headline font-bold transition-all hover:shadow-md active:scale-95 whitespace-nowrap"
           >
-            + Add Application
+            + New Application
           </button>
         </div>
 
         {/* Table */}
         {loading ? (
-          <div className="text-center text-purple-300/60 py-20 text-lg font-medium">Loading your applications...</div>
+          <div className="text-center text-on-surface-variant py-20 text-lg font-body">Loading your applications...</div>
         ) : filtered.length === 0 ? (
-          <div className="text-center text-purple-300/60 py-20 text-lg font-medium">No applications yet. Add one to get started!</div>
+          <div className="text-center text-on-surface-variant py-20 text-lg font-body">No applications yet. Add one to get started!</div>
         ) : (
-          <div className="backdrop-blur-xl bg-white/5 border border-purple-300/25 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:border-purple-300/40">
+          <div className="bg-surface-container-lowest dark:bg-surface-container-low border border-outline-variant/20 rounded-xl overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-purple-300/20 bg-gradient-to-r from-purple-500/15 via-blue-500/10 to-purple-500/15">
-                  <th className="text-left text-purple-100 text-sm font-bold px-6 py-4 tracking-wide">Company</th>
-                  <th className="text-left text-purple-100 text-sm font-bold px-6 py-4 tracking-wide">Role</th>
-                  <th className="text-left text-purple-100 text-sm font-bold px-6 py-4 tracking-wide">Status</th>
-                  <th className="text-left text-purple-100 text-sm font-bold px-6 py-4 tracking-wide">Date Applied</th>
-                  <th className="text-left text-purple-100 text-sm font-bold px-6 py-4 tracking-wide">Actions</th>
+                <tr className="border-b border-outline-variant/20 bg-surface-container-low">
+                  <th className="text-left text-on-surface font-headline text-sm font-bold px-6 py-4">Company</th>
+                  <th className="text-left text-on-surface font-headline text-sm font-bold px-6 py-4">Role</th>
+                  <th className="text-left text-on-surface font-headline text-sm font-bold px-6 py-4">Status</th>
+                  <th className="text-left text-on-surface font-headline text-sm font-bold px-6 py-4">Date Applied</th>
+                  <th className="text-left text-on-surface font-headline text-sm font-bold px-6 py-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((app) => (
-                  <tr key={app.id} className="border-b border-purple-300/15 last:border-0 hover:bg-white/5 transition-colors duration-200">
+                  <tr key={app.id} className="border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-purple-50">{app.company}</div>
+                      <div className="font-body font-semibold text-on-surface">{app.company}</div>
                       {app.jobLink && (
-                        <a href={app.jobLink} target="_blank" rel="noreferrer" className="text-xs text-blue-300 hover:text-blue-200 transition-colors font-medium">
+                        <a href={app.jobLink} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline font-body">
                           View posting →
                         </a>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-purple-100/90">{app.role}</td>
+                    <td className="px-6 py-4 font-body text-on-surface-variant">{app.role}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-2 rounded-full text-xs inline-block backdrop-blur-sm ${statusColors[app.status]}`}>
+                      <span className={`px-3 py-1.5 rounded-full text-xs inline-block font-label ${statusColors[app.status]}`}>
                         {app.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-purple-200/70 text-sm font-medium">{app.dateApplied}</td>
+                    <td className="px-6 py-4 font-body text-on-surface-variant text-sm">{app.dateApplied}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-4">
-                        <button onClick={() => handleEdit(app)} className="text-xs text-blue-300 hover:text-blue-200 font-bold transition-colors hover:underline">
+                        <button onClick={() => handleEdit(app)} className="text-xs text-primary hover:underline font-body font-semibold">
                           Edit
                         </button>
-                        <button onClick={() => handleDelete(app.id)} className="text-xs text-red-300 hover:text-red-200 font-bold transition-colors hover:underline">
+                        <button onClick={() => handleDelete(app.id)} className="text-xs text-error hover:underline font-body font-semibold">
                           Delete
                         </button>
                       </div>
@@ -253,76 +249,75 @@ const Dashboard = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm">
-          <div className="backdrop-blur-2xl bg-gradient-to-br from-purple-900/70 via-blue-900/50 to-slate-900/70 border border-purple-300/40 rounded-3xl p-8 w-full max-w-lg shadow-2xl shadow-purple-500/40">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-200 via-blue-200 to-purple-200 bg-clip-text text-transparent mb-6">
+        <div className="fixed inset-0 z-40 flex items-center justify-center px-4 bg-black/30 backdrop-blur-sm">
+          <div className="bg-surface-container-lowest dark:bg-surface-container-low border border-outline-variant/20 rounded-2xl p-8 w-full max-w-lg shadow-2xl">
+            <h2 className="font-headline font-bold text-on-surface dark:text-inverse-on-surface text-2xl mb-6">
               {editingApp ? 'Edit Application' : 'Add Application'}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-purple-100 mb-2 font-bold tracking-widest uppercase">Company</label>
+                  <label className="block font-label text-[11px] uppercase tracking-widest text-on-surface-variant font-semibold mb-2">Company</label>
                   <input
                     type="text"
                     value={form.company}
                     onChange={(e) => setForm({ ...form, company: e.target.value })}
-                    className="w-full backdrop-blur-sm bg-white/10 border border-purple-300/40 rounded-xl px-4 py-3 text-white placeholder-purple-200/40 focus:outline-none focus:border-purple-300/70 focus:bg-white/15 transition-all"
+                    className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-purple-100 mb-2 font-bold tracking-widest uppercase">Role</label>
+                  <label className="block font-label text-[11px] uppercase tracking-widest text-on-surface-variant font-semibold mb-2">Role</label>
                   <input
                     type="text"
                     value={form.role}
                     onChange={(e) => setForm({ ...form, role: e.target.value })}
-                    className="w-full backdrop-blur-sm bg-white/10 border border-purple-300/40 rounded-xl px-4 py-3 text-white placeholder-purple-200/40 focus:outline-none focus:border-purple-300/70 focus:bg-white/15 transition-all"
+                    className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all"
                     required
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-purple-100 mb-2 font-bold tracking-widest uppercase">Status</label>
+                  <label className="block font-label text-[11px] uppercase tracking-widest text-on-surface-variant font-semibold mb-2">Status</label>
                   <select
                     value={form.status}
                     onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    className="w-full backdrop-blur-sm bg-white/10 border border-purple-300/40 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-300/70 focus:bg-white/15 transition-all"
-                    style={{ colorScheme: 'dark' }}
+                    className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all"
                   >
-                    <option value="APPLIED" style={{ background: '#1e293b', color: '#e0e7ff' }}>Applied</option>
-                    <option value="INTERVIEW" style={{ background: '#1e293b', color: '#e0e7ff' }}>Interview</option>
-                    <option value="OFFER" style={{ background: '#1e293b', color: '#e0e7ff' }}>Offer</option>
-                    <option value="REJECTED" style={{ background: '#1e293b', color: '#e0e7ff' }}>Rejected</option>
+                    <option value="APPLIED">Applied</option>
+                    <option value="INTERVIEW">Interview</option>
+                    <option value="OFFER">Offer</option>
+                    <option value="REJECTED">Rejected</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-purple-100 mb-2 font-bold tracking-widest uppercase">Date Applied</label>
+                  <label className="block font-label text-[11px] uppercase tracking-widest text-on-surface-variant font-semibold mb-2">Date Applied</label>
                   <input
                     type="date"
                     value={form.dateApplied}
                     onChange={(e) => setForm({ ...form, dateApplied: e.target.value })}
-                    className="w-full backdrop-blur-sm bg-white/10 border border-purple-300/40 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-300/70 focus:bg-white/15 transition-all"
+                    className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all"
                     required
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-purple-100 mb-2 font-bold tracking-widest uppercase">Job Link</label>
+                <label className="block font-label text-[11px] uppercase tracking-widest text-on-surface-variant font-semibold mb-2">Job Link</label>
                 <input
                   type="url"
                   value={form.jobLink}
                   onChange={(e) => setForm({ ...form, jobLink: e.target.value })}
-                  className="w-full backdrop-blur-sm bg-white/10 border border-purple-300/40 rounded-xl px-4 py-3 text-white placeholder-purple-200/40 focus:outline-none focus:border-purple-300/70 focus:bg-white/15 transition-all"
+                  className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all"
                   placeholder="https://..."
                 />
               </div>
               <div>
-                <label className="block text-xs text-purple-100 mb-2 font-bold tracking-widest uppercase">Notes</label>
+                <label className="block font-label text-[11px] uppercase tracking-widest text-on-surface-variant font-semibold mb-2">Notes</label>
                 <textarea
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  className="w-full backdrop-blur-sm bg-white/10 border border-purple-300/40 rounded-xl px-4 py-3 text-white placeholder-purple-200/40 focus:outline-none focus:border-purple-300/70 focus:bg-white/15 transition-all resize-none"
+                  className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all resize-none"
                   rows={3}
                   placeholder="Any notes about this application..."
                 />
@@ -331,13 +326,13 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => { setShowModal(false); setEditingApp(null); }}
-                  className="flex-1 backdrop-blur-sm bg-white/10 border border-purple-300/40 hover:bg-white/20 text-purple-100 py-3 rounded-xl text-sm font-bold transition-all duration-300 hover:border-purple-300/70"
+                  className="flex-1 bg-surface-container border border-outline-variant hover:bg-surface-container-high text-on-surface py-3 rounded-lg font-headline font-bold transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-500 via-blue-600 to-purple-600 hover:from-purple-600 hover:via-blue-700 hover:to-purple-700 text-white py-3 rounded-xl text-sm font-bold transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95"
+                  className="flex-1 bg-primary text-on-primary py-3 rounded-lg font-headline font-bold transition-all hover:shadow-md active:scale-95"
                 >
                   {editingApp ? 'Save Changes' : 'Add Application'}
                 </button>
@@ -351,3 +346,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

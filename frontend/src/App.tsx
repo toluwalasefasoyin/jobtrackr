@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProfileProvider } from './context/ProfileContext';
 import { ThemeProvider } from './context/ThemeContext';
+import ProtectedLayout from './components/ProtectedLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -19,21 +20,17 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />} />
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/analytics" element={
-        <ProtectedRoute>
-          <Analytics />
-        </ProtectedRoute>
-      } />
-      <Route path="/profile" element={
-        <ProtectedRoute>
-          <Profile />
-        </ProtectedRoute>
-      } />
+      <Route
+        element={
+          <ProtectedRoute>
+            <ProtectedLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/profile" element={<Profile />} />
+      </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
