@@ -30,6 +30,8 @@ public class JobApplication {
 
     private LocalDate dateApplied;
 
+    private LocalDate interviewDate;
+
     private String notes;
 
     private String jobLink;

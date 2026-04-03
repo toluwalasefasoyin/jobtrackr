@@ -7,16 +7,16 @@ import type { Notification } from '../hooks/useWebSocket';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:8080';
 
-const typeColors: Record<string, string> = {
-  CREATED: '#10b981',
-  UPDATED: '#f59e0b',
-  DELETED: '#ef4444',
+const typeIcons: Record<string, string> = {
+  CREATED: 'add_circle',
+  UPDATED: 'update',
+  DELETED: 'delete_sweep',
 };
 
-const typeIcons: Record<string, string> = {
-  CREATED: '✨',
-  UPDATED: '⟳',
-  DELETED: '✕',
+const typeColors: Record<string, string> = {
+  CREATED: 'text-primary bg-primary/10',
+  UPDATED: 'text-tertiary bg-tertiary-container/10',
+  DELETED: 'text-error bg-error/10',
 };
 
 const NotificationBell = () => {
@@ -28,10 +28,9 @@ const NotificationBell = () => {
   const clientRef = useRef<Client | null>(null);
   const { username, token } = useAuth();
 
-  // Connect to WebSocket
   const connectWebSocket = useCallback(() => {
     if (!username || !token) return;
-    if (clientRef.current) return; // Already connected
+    if (clientRef.current) return;
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${WS_URL}/ws`),
@@ -40,7 +39,6 @@ const NotificationBell = () => {
       },
       reconnectDelay: 5000,
       onConnect: () => {
-        console.log('NotificationBell WebSocket connected');
         client.subscribe(`/user/${username}/queue/notifications`, message => {
           const notification: Notification = JSON.parse(message.body);
           setNotifications(prev => [notification, ...prev].slice(0, 10));
@@ -48,7 +46,6 @@ const NotificationBell = () => {
         });
       },
       onDisconnect: () => {
-        console.log('NotificationBell WebSocket disconnected');
         clientRef.current = null;
       },
       onStompError: frame => {
@@ -62,7 +59,6 @@ const NotificationBell = () => {
 
   useEffect(() => {
     connectWebSocket();
-
     return () => {
       if (clientRef.current) {
         clientRef.current.deactivate();
@@ -71,7 +67,6 @@ const NotificationBell = () => {
     };
   }, [connectWebSocket]);
 
-  // Handle click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -102,188 +97,91 @@ const NotificationBell = () => {
   const formatTime = (createdAt: string) => {
     try {
       if (!createdAt) return 'unknown time';
-      
-      // Parse as ISO format (backend sends as "2026-04-02T10:30:45")
-      const date = new Date(createdAt + 'Z'); // Add Z for UTC
-      
-      if (isNaN(date.getTime())) {
-        console.warn('Invalid date format:', createdAt);
-        return 'unknown time';
-      }
-      
+      const date = new Date(createdAt + 'Z');
+      if (isNaN(date.getTime())) return 'unknown time';
       const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diff = Math.floor(diffMs / 1000); // Convert to seconds
-      
-      if (diff < 0) return 'just now'; // Future date or parsing issue
+      const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+      if (diff < 0) return 'just now';
       if (diff < 60) return 'just now';
-      if (diff < 3600) {
-        const minutes = Math.floor(diff / 60);
-        return `${minutes}m ago`;
-      }
-      if (diff < 86400) {
-        const hours = Math.floor(diff / 3600);
-        return `${hours}h ago`;
-      }
-      if (diff < 604800) {
-        const days = Math.floor(diff / 86400);
-        return `${days}d ago`;
-      }
-      
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+      if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
       return date.toLocaleDateString();
-    } catch (err) {
-      console.error('Error parsing date:', createdAt, err);
+    } catch {
       return 'unknown time';
     }
   };
 
   return (
-    <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
-      {/* Bell button */}
+    <div ref={dropdownRef} className="relative inline-block">
+      {/* Bell Button */}
       <button
         onClick={handleOpen}
-        style={{
-          position: 'relative',
-          background: 'rgba(168,85,247,0.1)',
-          border: '1px solid rgba(168,85,247,0.3)',
-          borderRadius: '12px',
-          width: '44px',
-          height: '44px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-          fontSize: '1.2rem',
-          padding: 0,
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.background = 'rgba(168,85,247,0.2)';
-          e.currentTarget.style.borderColor = 'rgba(168,85,247,0.5)';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.background = 'rgba(168,85,247,0.1)';
-          e.currentTarget.style.borderColor = 'rgba(168,85,247,0.3)';
-        }}
+        className="relative scale-95 active:scale-90 transition-transform cursor-pointer p-2 rounded-full bg-white/5 hover:bg-white/10"
       >
-        🔔
+        <span className="material-symbols-outlined text-slate-400">notifications</span>
         {unreadCount > 0 && (
-          <span style={{
-            position: 'absolute',
-            top: '-8px',
-            right: '-8px',
-            background: 'linear-gradient(135deg, #ec4899, #a855f7)',
-            color: '#fff',
-            fontSize: '0.65rem',
-            fontWeight: 700,
-            width: '20px',
-            height: '20px',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            animation: 'pulse 2s infinite',
-            border: '2px solid rgba(0,0,0,0.5)',
-          }}>
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
+          <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-tertiary-container rounded-full ring-2 ring-surface"></span>
         )}
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div style={{
-          position: 'fixed',
-          top: '80px',
-          right: '20px',
-          width: '380px',
-          maxHeight: '500px',
-          background: 'rgba(15,23,42,0.95)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(168,85,247,0.3)',
-          borderRadius: '16px',
-          boxShadow: '0 25px 50px rgba(0,0,0,0.6), 0 0 1px rgba(168,85,247,0.5)',
-          zIndex: 9999,
-          overflow: 'hidden',
-        }}>
-          {/* Header */}
-          <div style={{
-            padding: '1rem 1.25rem',
-            borderBottom: '1px solid rgba(168,85,247,0.2)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            background: 'linear-gradient(135deg, rgba(168,85,247,0.1), rgba(59,130,246,0.1))',
-          }}>
-            <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#e9d5ff' }}>
-              Notifications
-            </span>
-            <span style={{ fontSize: '0.75rem', color: 'rgba(233,213,255,0.5)' }}>
-              {notifications.length} recent
-            </span>
+        <div className="absolute right-0 mt-4 w-[380px] bg-surface-container-highest rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-xl overflow-hidden z-50">
+          <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center bg-surface-container-high/50">
+            <h3 className="text-sm font-bold tracking-tight text-white uppercase">
+              Activity Notifications
+            </h3>
+            {unreadCount > 0 && (
+              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                {unreadCount} New
+              </span>
+            )}
           </div>
 
-          {/* List */}
-          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+          <div className="max-h-[440px] overflow-y-auto">
             {loading ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: 'rgba(233,213,255,0.4)', fontSize: '0.85rem' }}>
+              <div className="p-8 text-center text-on-surface-variant/50 text-sm">
+                <span className="material-symbols-outlined animate-spin text-2xl block mb-2">progress_activity</span>
                 Loading...
               </div>
             ) : notifications.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: 'rgba(233,213,255,0.4)', fontSize: '0.85rem' }}>
+              <div className="p-8 text-center text-on-surface-variant/50 text-sm">
+                <span className="material-symbols-outlined text-2xl block mb-2">notifications_none</span>
                 No notifications yet
               </div>
             ) : (
-              notifications.map((n: any, i) => (
+              notifications.map((n: any, i: number) => (
                 <div
                   key={n.id || i}
-                  style={{
-                    padding: '1rem 1.25rem',
-                    borderBottom: '1px solid rgba(168,85,247,0.1)',
-                    display: 'flex',
-                    gap: '0.75rem',
-                    alignItems: 'flex-start',
-                    background: n.read === false ? 'linear-gradient(135deg, rgba(168,85,247,0.08), rgba(59,130,246,0.05))' : 'transparent',
-                    transition: 'background 0.2s',
-                  }}
+                  className="p-4 hover:bg-white/5 transition-colors cursor-default border-b border-white/5 flex gap-4 items-start"
                 >
-                  <span style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    background: `${typeColors[n.type] || '#999'}30`,
-                    border: `1.5px solid ${typeColors[n.type] || '#999'}60`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.85rem',
-                    color: typeColors[n.type] || '#999',
-                    flexShrink: 0,
-                    fontWeight: 'bold',
-                  }}>
-                    {typeIcons[n.type] || '•'}
-                  </span>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: '0.82rem', color: '#e9d5ff', lineHeight: 1.4, margin: 0, fontWeight: 500 }}>
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${typeColors[n.type] || 'text-outline bg-white/5'}`}>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      {typeIcons[n.type] || 'info'}
+                    </span>
+                  </div>
+                  <div className="flex-grow">
+                    <p className="text-sm text-on-surface leading-snug">
                       {n.message}
                     </p>
-                    <p style={{ fontSize: '0.7rem', color: 'rgba(233,213,255,0.4)', marginTop: '0.35rem' }}>
+                    <span className="text-[11px] text-on-surface-variant font-medium mt-1 inline-block">
                       {formatTime(n.createdAt)}
-                    </p>
+                    </span>
                   </div>
                 </div>
               ))
             )}
           </div>
+
+          <button className="block w-full text-center py-3 bg-surface-container-high/50 hover:bg-surface-container-highest border-t border-white/5 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest transition-colors">
+            View All Activity
+          </button>
         </div>
       )}
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.2); }
-        }
-      `}</style>
     </div>
   );
 };

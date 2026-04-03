@@ -9,6 +9,7 @@ public class JobApplicationRequest {
     private String role;
     private String status;
     private LocalDate dateApplied;
+    private LocalDate interviewDate;
     private String notes;
     private String jobLink;
 }

@@ -9,64 +9,61 @@ const Sidebar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { path: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/analytics', icon: 'query_stats', label: 'Insights' },
+    { path: '/dashboard', icon: 'grid_view', label: 'Dashboard' },
+    { path: '/interviews', icon: 'calendar_month', label: 'Interviews' },
+    { path: '/analytics', icon: 'insert_chart', label: 'Analytics' },
     { path: '/profile', icon: 'settings', label: 'Profile' },
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-full py-8 px-4 flex flex-col justify-between h-screen w-64 bg-surface-container-low dark:bg-inverse-surface font-headline font-medium text-sm hidden lg:flex z-40 transition-all duration-300 ease-in-out">
-      <div className="flex flex-col gap-10">
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-2">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary font-black">
-            <span className="material-symbols-outlined text-xl">work</span>
-          </div>
-          <div>
-            <div className="text-xl font-black text-primary tracking-tight">The Executive</div>
-            <div className="text-[10px] uppercase tracking-widest opacity-60">Curator</div>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex flex-col gap-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out ${
-                isActive(item.path)
-                  ? 'text-primary dark:text-primary-fixed font-bold border-r-4 border-primary bg-white dark:bg-white/10 shadow-sm'
-                  : 'text-on-surface-variant dark:text-on-surface-variant hover:bg-surface dark:hover:bg-white/5'
-              }`}
-            >
-              <span className="material-symbols-outlined" style={isActive(item.path) ? { fontVariationSettings: "'FILL' 1" } : {}}>
-                {item.icon}
-              </span>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+    <aside className="hidden lg:flex h-screen w-64 fixed left-0 top-0 flex-col p-4 gap-2 bg-surface-container-low pt-20 z-40 font-body text-sm tracking-wide">
+      <div className="mb-8 px-4">
+        <h2 className="text-indigo-500 font-black text-lg">JobTrackr</h2>
+        <p className="text-slate-500 text-[10px] uppercase tracking-[0.2em]">Command Center</p>
       </div>
 
-      {/* Bottom Actions */}
-      <div className="flex flex-col gap-2">
-        <button className="w-full mb-6 py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-full font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity">
-          New Application
-        </button>
-        <Link
-          to="/profile"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface dark:hover:bg-white/5 transition-all duration-300"
+      <div className="space-y-1">
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-all duration-300 ${
+              isActive(item.path)
+                ? 'text-white bg-indigo-500/10'
+                : 'text-slate-500 hover:bg-white/5'
+            }`}
+          >
+            <span
+              className="material-symbols-outlined text-lg"
+              style={
+                isActive(item.path)
+                  ? { fontVariationSettings: "'FILL' 1" }
+                  : {}
+              }
+            >
+              {item.icon}
+            </span>
+            <span className={isActive(item.path) ? 'font-semibold' : ''}>
+              {item.label}
+            </span>
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-auto space-y-1 pt-4 border-t border-white/5">
+        <a
+          href="#"
+          className="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-white/5 transition-all duration-300 rounded-md"
         >
-          <span className="material-symbols-outlined">settings</span>
-          Settings
-        </Link>
+          <span className="material-symbols-outlined text-lg">help_outline</span>
+          <span>Help</span>
+        </a>
         <button
           onClick={logout}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface dark:hover:bg-white/5 transition-all duration-300"
+          className="w-full flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-white/5 transition-all duration-300 rounded-md"
         >
-          <span className="material-symbols-outlined">logout</span>
-          Logout
+          <span className="material-symbols-outlined text-lg">logout</span>
+          <span>Sign Out</span>
         </button>
       </div>
     </aside>

@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import Navbar from '../components/Navbar';
 
 const Profile: React.FC = () => {
   const { username } = useAuth();
-  const { theme, setTheme } = useTheme();
-  const [notifications, setNotifications] = useState({
-    emailOnNewJob: true,
-    emailOnUpdate: true,
-    emailOnOffer: true,
-    pushNotifications: true,
-  });
   const [profileForm, setProfileForm] = useState({
     fullName: username || 'User',
     email: username || '',
@@ -22,7 +13,6 @@ const Profile: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Load profile data from API on mount
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -33,14 +23,8 @@ const Profile: React.FC = () => {
           phone: response.data.phone || '',
           bio: response.data.bio || '',
         });
-        setNotifications({
-          emailOnNewJob: response.data.emailOnNewJob ?? true,
-          emailOnUpdate: response.data.emailOnUpdate ?? true,
-          emailOnOffer: response.data.emailOnOffer ?? true,
-          pushNotifications: response.data.pushNotifications ?? true,
-        });
       } catch (err) {
-        console.error('Failed to load profile:', err);
+        // Suppress console error regarding sensitive data
       }
     };
     loadProfile();
@@ -48,13 +32,6 @@ const Profile: React.FC = () => {
 
   const handleProfileChange = (field: string, value: string) => {
     setProfileForm(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleNotificationChange = (field: string, value: boolean) => {
-    setNotifications(prev => ({
       ...prev,
       [field]: value,
     }));
@@ -70,7 +47,6 @@ const Profile: React.FC = () => {
       });
       setSuccessMessage('Profile updated successfully!');
       
-      // Fetch updated profile data
       const response = await axios.get('/user/profile');
       setProfileForm({
         fullName: response.data.fullName || username || 'User',
@@ -88,195 +64,88 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleSaveNotifications = async () => {
-    setLoading(true);
-    try {
-      await axios.put('/user/preferences', {
-        emailOnNewJob: notifications.emailOnNewJob,
-        emailOnUpdate: notifications.emailOnUpdate,
-        emailOnOffer: notifications.emailOnOffer,
-        pushNotifications: notifications.pushNotifications,
-      });
-      setSuccessMessage('Notification preferences saved!');
-      
-      // Fetch updated profile data to sync all fields
-      const response = await axios.get('/user/profile');
-      setNotifications({
-        emailOnNewJob: response.data.emailOnNewJob ?? true,
-        emailOnUpdate: response.data.emailOnUpdate ?? true,
-        emailOnOffer: response.data.emailOnOffer ?? true,
-        pushNotifications: response.data.pushNotifications ?? true,
-      });
-      
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (err) {
-      setSuccessMessage('Failed to save preferences');
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white overflow-x-hidden">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '.5s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-indigo-600/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-      </div>
+    <div className="px-6 lg:px-12 py-8 pb-12 w-full max-w-5xl mx-auto">
+      <header className="mb-10">
+        <div className="flex items-center gap-2 text-xs font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-2">
+          <span>Overview</span>
+          <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+          <span className="text-primary">Profile</span>
+        </div>
+        <h1 className="text-4xl font-extrabold tracking-tighter text-white">
+          System Profile
+        </h1>
+        <p className="text-on-surface-variant">Manage your command center identity</p>
+      </header>
 
-      <Navbar />
+      {successMessage && (
+        <div className="mb-6 px-4 py-3 bg-primary/20 border border-primary/50 text-primary rounded-lg text-sm font-bold flex items-center gap-2">
+          <span className="material-symbols-outlined">check_circle</span>
+          {successMessage}
+        </div>
+      )}
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 py-8 pt-24">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-white mb-2">Profile Settings</h1>
-          <p className="text-gray-400">Manage your account and preferences</p>
+      <div className="bg-surface-container rounded-xl ghost-border p-8">
+        <div className="flex items-center gap-6 mb-8 border-b border-white/5 pb-8">
+          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-4xl font-bold text-on-primary-fixed shadow-[0_0_20px_rgba(192,193,255,0.2)]">
+            {profileForm.fullName[0]?.toUpperCase()}
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-white tracking-tight">{profileForm.fullName}</h2>
+            <p className="text-primary font-bold text-sm tracking-wide">ID: {username}</p>
+          </div>
         </div>
 
-        {/* Success Message */}
-        {successMessage && (
-          <div className="mb-6 px-4 py-3 bg-green-500/20 border border-green-400/50 rounded-lg text-green-100 text-sm">
-            {successMessage}
-          </div>
-        )}
-
-        {/* Profile Information Section */}
-        <div className="backdrop-blur-xl bg-gradient-to-br from-purple-900/20 to-blue-900/20 border border-purple-400/30 rounded-2xl p-8 mb-8">
-          <div className="flex items-center gap-6 mb-8">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-4xl font-bold">
-              {profileForm.fullName[0]}
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-1">{profileForm.fullName}</h2>
-              <p className="text-purple-300">{username}</p>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 ml-1">Full Name</label>
+            <input
+              type="text"
+              value={profileForm.fullName}
+              onChange={(e) => handleProfileChange('fullName', e.target.value)}
+              className="w-full bg-surface-container-lowest ghost-border rounded-lg py-3 px-4 text-sm text-white placeholder:text-outline/50 focus:outline-none focus:ring-1 focus:ring-primary/80 transition-all"
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div>
-              <label className="block text-sm font-medium text-purple-200 mb-2">Full Name</label>
-              <input
-                type="text"
-                value={profileForm.fullName}
-                onChange={(e) => handleProfileChange('fullName', e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-purple-400/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-400/60 focus:bg-white/10 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-purple-200 mb-2">Email</label>
-              <input
-                type="email"
-                value={profileForm.email}
-                onChange={(e) => handleProfileChange('email', e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-purple-400/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-400/60 focus:bg-white/10 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-purple-200 mb-2">Phone</label>
-              <input
-                type="tel"
-                value={profileForm.phone}
-                onChange={(e) => handleProfileChange('phone', e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-purple-400/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-400/60 focus:bg-white/10 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-purple-200 mb-2">Bio</label>
-              <textarea
-                value={profileForm.bio}
-                onChange={(e) => handleProfileChange('bio', e.target.value)}
-                rows={3}
-                className="w-full px-4 py-3 bg-white/5 border border-purple-400/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-400/60 focus:bg-white/10 transition resize-none"
-              />
-            </div>
+          <div>
+            <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 ml-1">Email</label>
+            <input
+              type="email"
+              value={profileForm.email}
+              onChange={(e) => handleProfileChange('email', e.target.value)}
+              className="w-full bg-surface-container-lowest ghost-border rounded-lg py-3 px-4 text-sm text-white placeholder:text-outline/50 focus:outline-none focus:ring-1 focus:ring-primary/80 transition-all"
+            />
           </div>
 
-          <button
-            onClick={handleSaveProfile}
-            disabled={loading}
-            className="bg-gradient-to-r from-purple-500 via-blue-600 to-purple-600 hover:from-purple-600 hover:via-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-purple-500/50"
-          >
-            {loading ? 'Saving...' : 'Save Profile Changes'}
-          </button>
+          <div>
+            <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 ml-1">Phone</label>
+            <input
+              type="tel"
+              value={profileForm.phone}
+              onChange={(e) => handleProfileChange('phone', e.target.value)}
+              className="w-full bg-surface-container-lowest ghost-border rounded-lg py-3 px-4 text-sm text-white placeholder:text-outline/50 focus:outline-none focus:ring-1 focus:ring-primary/80 transition-all"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 ml-1">Bio / Role</label>
+            <textarea
+              value={profileForm.bio}
+              onChange={(e) => handleProfileChange('bio', e.target.value)}
+              rows={3}
+              className="w-full bg-surface-container-lowest ghost-border rounded-lg py-3 px-4 text-sm text-white placeholder:text-outline/50 focus:outline-none focus:ring-1 focus:ring-primary/80 transition-all resize-none"
+            />
+          </div>
         </div>
 
-        {/* Notification Preferences */}
-        <div className="backdrop-blur-xl bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-400/30 rounded-2xl p-8 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Notification Preferences</h2>
-
-          <div className="space-y-4 mb-8">
-            {[
-              { key: 'emailOnNewJob', label: 'Email notifications for new job matches', description: 'Get emailed when new opportunities match your criteria' },
-              { key: 'emailOnUpdate', label: 'Email on application updates', description: 'Receive emails when applications are updated' },
-              { key: 'emailOnOffer', label: 'Email on job offers', description: 'Get notified immediately when you receive an offer' },
-              { key: 'pushNotifications', label: 'Push notifications', description: 'Receive browser push notifications' },
-            ].map(({ key, label, description }) => (
-              <div key={key} className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-blue-400/20 hover:bg-white/10 transition">
-                <input
-                  type="checkbox"
-                  id={key}
-                  checked={notifications[key as keyof typeof notifications]}
-                  onChange={(e) => handleNotificationChange(key, e.target.checked)}
-                  className="mt-1 w-5 h-5 rounded border-purple-400/60 bg-white/10 accent-purple-500 cursor-pointer"
-                />
-                <div className="flex-1">
-                  <label htmlFor={key} className="block text-sm font-medium text-white cursor-pointer">
-                    {label}
-                  </label>
-                  <p className="text-xs text-gray-400 mt-1">{description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <button
-            onClick={handleSaveNotifications}
-            disabled={loading}
-            className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-blue-500/50"
-          >
-            {loading ? 'Saving...' : 'Save Notification Settings'}
-          </button>
-        </div>
-
-        {/* Theme Settings */}
-        <div className="backdrop-blur-xl bg-gradient-to-br from-amber-900/20 to-orange-900/20 border border-amber-400/30 rounded-2xl p-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Theme</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {['light', 'dark', 'system'].map((t) => (
-              <button
-                key={t}
-                onClick={() => setTheme(t as 'light' | 'dark' | 'system')}
-                className={`p-6 rounded-xl transition-all ${
-                  theme === t
-                    ? 'bg-amber-500/30 border-2 border-amber-400/60 shadow-lg shadow-amber-500/30'
-                    : 'bg-white/5 border border-amber-400/20 hover:bg-white/10'
-                }`}
-              >
-                <div className="text-2xl mb-2">
-                  {t === 'light' ? '☀️' : t === 'dark' ? '🌙' : '💻'}
-                </div>
-                <p className="font-semibold text-white capitalize">{t === 'system' ? 'System' : t} Mode</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {t === 'light'
-                    ? 'Light theme'
-                    : t === 'dark'
-                    ? 'Dark theme'
-                    : 'Follow system'}
-                </p>
-              </button>
-            ))}
-          </div>
-
-          <p className="text-sm text-gray-400">
-            Current theme: <span className="font-semibold text-amber-300 capitalize">{theme}</span>
-          </p>
-        </div>
+        <button
+          onClick={handleSaveProfile}
+          disabled={loading}
+          className="flex items-center justify-center gap-2 bg-gradient-to-b from-primary to-primary-container text-on-primary-fixed px-6 py-3 rounded-lg font-bold text-sm tracking-tight hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+        >
+          {loading ? 'Processing...' : 'Save Configuration'}
+          {!loading && <span className="material-symbols-outlined text-[18px]">save</span>}
+        </button>
       </div>
     </div>
   );

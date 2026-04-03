@@ -2,36 +2,54 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const TopBar: React.FC = () => {
-  const { username } = useAuth();
+  const { username, logout } = useAuth();
 
   return (
-    <header className="flex justify-between items-center w-full px-8 py-4 sticky top-0 z-50 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl font-headline font-semibold text-lg border-b border-outline-variant/10">
+    <nav className="sticky top-0 w-full z-50 bg-surface/70 backdrop-blur-xl border-b border-white/10 shadow-2xl flex items-center justify-between px-6 py-3 font-body antialiased">
       <div className="flex items-center gap-8">
-        <span className="text-lg font-extrabold text-primary dark:text-primary-fixed">JobTrackr</span>
-        <div className="hidden md:flex items-center bg-surface-container-low dark:bg-surface-container rounded-full px-4 py-2 w-96 group focus-within:ring-2 ring-primary/20 transition-all">
-          <span className="material-symbols-outlined text-outline">search</span>
-          <input
-            className="bg-transparent border-none focus:ring-0 text-sm w-full font-normal text-on-surface dark:text-on-surface placeholder:text-on-surface-variant"
-            placeholder="Search applications..."
-            type="text"
-          />
+        <span className="text-xl font-bold tracking-tighter text-white">JobTrackr</span>
+        <div className="hidden md:flex items-center gap-6">
+          <a
+            className="text-white font-semibold hover:text-indigo-400 transition-colors duration-200"
+            href="/dashboard"
+          >
+            Dashboard
+          </a>
+          <a
+            className="text-slate-400 font-medium hover:text-indigo-400 transition-colors duration-200"
+            href="/analytics"
+          >
+            Analytics
+          </a>
+          <a
+            className="text-slate-400 font-medium hover:text-indigo-400 transition-colors duration-200"
+            href="/profile"
+          >
+            Profile
+          </a>
         </div>
       </div>
+
       <div className="flex items-center gap-4">
-        <button className="p-2 hover:bg-surface-container-high dark:hover:bg-white/10 rounded-full transition-colors relative">
-          <span className="material-symbols-outlined">notifications</span>
-          <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
-        </button>
-        <button className="p-2 hover:bg-surface-container-high dark:hover:bg-white/10 rounded-full transition-colors">
-          <span className="material-symbols-outlined">help_outline</span>
-        </button>
-        <div className="h-10 w-10 rounded-full bg-secondary-container overflow-hidden">
-          <div className="w-full h-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-white font-bold text-sm">
-            {username?.[0]?.toUpperCase()}
+        <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+          <div className="hidden sm:flex flex-col items-end">
+            <span className="text-xs font-bold text-white uppercase tracking-widest">
+              {username || 'User'}
+            </span>
+            <span className="text-[10px] text-on-surface-variant uppercase">Active Session</span>
           </div>
+          <div className="w-8 h-8 rounded-lg overflow-hidden ghost-border bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-on-primary-fixed font-bold text-sm">
+            {username?.[0]?.toUpperCase() || 'U'}
+          </div>
+          <button
+            onClick={logout}
+            className="text-slate-400 hover:text-white transition-colors p-1"
+          >
+            <span className="material-symbols-outlined">logout</span>
+          </button>
         </div>
       </div>
-    </header>
+    </nav>
   );
 };
 

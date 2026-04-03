@@ -11,17 +11,36 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [timerCount, setTimerCount] = useState(0);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    // Validations
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      setError('Password must contain at least one special symbol.');
+      return;
+    }
+
+    setLoading(true);
+
+    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    for (let i = 3; i > 0; i--) {
+      setTimerCount(i);
+      await wait(1000);
+    }
+    setTimerCount(0);
+
     try {
       const res = await api.post<AuthResponse>('/auth/register', { username, email, password });
-      login(res.data.token);
-      localStorage.setItem('username', username);
+      login(res.data.token, username);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
@@ -31,146 +50,200 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface font-body flex flex-col">
-      <main className="flex-grow flex items-center justify-center relative overflow-hidden px-4">
-        {/* Decorative background elements */}
-        <div className="absolute top-0 left-0 w-full h-full -z-10 opacity-30">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary-fixed-dim blur-[120px]"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-tertiary-fixed blur-[120px]"></div>
-        </div>
+    <div className="flex min-h-screen items-center justify-center p-6 antialiased bg-background text-on-surface selection:bg-primary selection:text-on-primary">
+      {/* Atmospheric Background Treatment */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary/10 blur-[160px] rounded-full"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full kinetic-gradient"></div>
+        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-secondary-container/20 blur-[160px] rounded-full"></div>
+      </div>
 
-        {/* Auth Container */}
-        <div className="container max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-0 bg-surface-container-lowest rounded-2xl overflow-hidden shadow-2xl">
-          {/* Visual Side */}
-          <div className="hidden lg:flex lg:col-span-5 bg-surface-container-low p-12 flex-col justify-between relative overflow-hidden">
-            <div className="z-10">
-              <h1 className="font-headline font-extrabold text-primary text-2xl tracking-tight mb-2">JobTrackr</h1>
-              <p className="font-headline font-semibold text-on-surface-variant text-lg">The Executive Curator</p>
+      <main className="w-full max-w-[440px]">
+        {/* Brand Anchor */}
+        <header className="mb-10 text-center">
+          <div className="inline-flex items-center gap-2 mb-6">
+            <div className="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+              <span
+                className="material-symbols-outlined text-on-primary-fixed"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                rocket_launch
+              </span>
             </div>
-            <div className="z-10">
-              <h2 className="font-headline font-bold text-3xl text-on-surface leading-tight mb-4">Join the curator community.</h2>
-              <p className="text-on-surface-variant leading-relaxed max-w-xs">Create your account and start managing your executive career journey today.</p>
-            </div>
-            <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-surface-container-highest rounded-2xl -rotate-12 opacity-40"></div>
+            <h1 className="text-2xl font-extrabold tracking-tighter text-on-surface">JobTrackr</h1>
           </div>
+          <h2 className="text-3xl font-bold text-on-surface tracking-tight mb-2">
+            Build your future.
+          </h2>
+          <p className="text-on-surface-variant text-sm font-medium">
+            Create your command center and start tracking.
+          </p>
+        </header>
 
-          {/* Form Side */}
-          <div className="lg:col-span-7 p-8 md:p-16 flex flex-col justify-center bg-white dark:bg-inverse-surface">
-            <div className="max-w-md mx-auto w-full">
-              <div className="mb-10 lg:hidden text-center">
-                <h1 className="font-headline font-extrabold text-primary text-2xl tracking-tight">JobTrackr</h1>
+        {/* Registration Card */}
+        <div className="glass-card rounded-2xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          {error && (
+            <div className="mb-6 px-4 py-3 bg-error-container/20 border border-error/30 rounded-lg text-error text-sm flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">error</span>
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Username Field */}
+            <div className="space-y-2">
+              <label
+                className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1"
+                htmlFor="username"
+              >
+                Username
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
+                  <span className="material-symbols-outlined text-xl">alternate_email</span>
+                </div>
+                <input
+                  className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl py-3.5 pl-12 pr-4 text-on-surface placeholder:text-outline/50 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all duration-300"
+                  id="username"
+                  name="username"
+                  placeholder="johndoe"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
               </div>
+            </div>
 
-              <header className="mb-10">
-                <h3 className="font-headline font-bold text-2xl text-on-surface mb-2">Create Account</h3>
-                <p className="text-on-surface-variant text-sm">Join the platform to start curating your career.</p>
-              </header>
-
-              {error && (
-                <div className="mb-6 px-4 py-3 bg-error-container border border-error-container rounded-lg text-on-error-container text-sm">
-                  {error}
+            {/* Email Field */}
+            <div className="space-y-2">
+              <label
+                className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1"
+                htmlFor="email"
+              >
+                Email Address
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
+                  <span className="material-symbols-outlined text-xl">mail</span>
                 </div>
-              )}
+                <input
+                  className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl py-3.5 pl-12 pr-4 text-on-surface placeholder:text-outline/50 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all duration-300"
+                  id="email"
+                  name="email"
+                  placeholder="name@company.com"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant ml-1 font-semibold">Username</label>
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full bg-surface-container-low border-none rounded-lg px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-outline-variant"
-                    placeholder="Choose a username"
-                    required
-                  />
+            {/* Password Field */}
+            <div className="space-y-2">
+              <label
+                className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1"
+                htmlFor="password"
+              >
+                Password
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
+                  <span className="material-symbols-outlined text-xl">lock_open</span>
                 </div>
-
-                <div className="space-y-2">
-                  <label className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant ml-1 font-semibold">Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-surface-container-low border-none rounded-lg px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-outline-variant"
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant ml-1 font-semibold">Password</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-surface-container-low border-none rounded-lg px-4 py-4 pr-12 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-outline-variant"
-                      placeholder="Create a password"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
-                    >
-                      {showPassword ? '👁️' : '👁️‍🗨️'}
-                    </button>
-                  </div>
-                </div>
-
+                <input
+                  className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl py-3.5 pl-12 pr-12 text-on-surface placeholder:text-outline/50 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all duration-300"
+                  id="password"
+                  name="password"
+                  placeholder="••••••••"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
                 <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold py-4 rounded-full transition-all active:scale-[0.98] shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors"
                 >
-                  {loading ? 'Creating account...' : 'Create Account'}
-                </button>
-              </form>
-
-              {/* Divider */}
-              <div className="relative my-10">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-outline-variant/30"></div>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase tracking-widest bg-white dark:bg-inverse-surface px-4">
-                  <span className="text-on-surface-variant">Or sign up with</span>
-                </div>
-              </div>
-
-              {/* Social Button */}
-              <div className="grid grid-cols-1 gap-4 mb-8">
-                <button className="flex items-center justify-center space-x-3 w-full bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant font-semibold py-4 rounded-full transition-all border border-outline-variant/10">
-                  <span className="material-symbols-outlined">account_circle</span>
-                  <span>Sign up with Google</span>
+                  <span className="material-symbols-outlined text-xl">
+                    {showPassword ? 'visibility' : 'visibility_off'}
+                  </span>
                 </button>
               </div>
-
-              <footer className="text-center">
-                <p className="text-on-surface-variant text-sm">
-                  Already have an account?{' '}
-                  <Link to="/login" className="text-primary font-bold hover:underline">
-                    Sign in
-                  </Link>
-                </p>
-              </footer>
+              <p className="text-[10px] text-outline ml-1">
+                Must be at least 8 characters with one special symbol.
+              </p>
             </div>
+
+            {/* CTA Button */}
+            <button
+              className="w-full group relative flex items-center justify-center gap-2 bg-gradient-to-b from-primary to-primary-container text-on-primary-fixed py-4 rounded-xl font-bold tracking-tight shadow-lg shadow-primary/10 hover:shadow-primary/20 active:scale-[0.98] transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+              type="submit"
+              disabled={loading}
+            >
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span>
+                {loading ? (timerCount > 0 ? `Initializing... (${timerCount}s)` : 'Creating account...') : 'Create account'}
+              </span>
+              {!loading && (
+                <span className="material-symbols-outlined text-lg translate-x-0 group-hover:translate-x-1 transition-transform">
+                  arrow_forward
+                </span>
+              )}
+            </button>
+          </form>
+
+          {/* Footer Action */}
+          <div className="mt-8 pt-6 border-t border-white/5 text-center">
+            <p className="text-sm text-on-surface-variant">
+              Already have an account?{' '}
+              <Link
+                to="/login"
+                className="text-primary font-bold hover:underline underline-offset-4 decoration-2 transition-all"
+              >
+                Log in
+              </Link>
+            </p>
           </div>
         </div>
+
+        {/* Security & Trust */}
+        <footer className="mt-12 grid grid-cols-3 gap-4 opacity-40">
+          <div className="flex flex-col items-center gap-1">
+            <span className="material-symbols-outlined text-xl text-on-surface-variant">
+              verified_user
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant">
+              Secure SSL
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <span className="material-symbols-outlined text-xl text-on-surface-variant">
+              encrypted
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant">
+              256-bit AES
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <span className="material-symbols-outlined text-xl text-on-surface-variant">
+              cloud_done
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant">
+              Cloud Sync
+            </span>
+          </div>
+        </footer>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-surface dark:bg-inverse-surface border-t border-outline-variant/15">
-        <div className="max-w-7xl mx-auto px-8 py-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <div className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant opacity-70">
-            © 2024 JobTrackr Executive
-          </div>
-          <nav className="flex space-x-8">
-            <a className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant opacity-70 hover:text-primary transition-colors" href="#">Help Center</a>
-            <a className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant opacity-70 hover:text-primary transition-colors" href="#">Documentation</a>
-            <a className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant opacity-70 hover:text-primary transition-colors" href="#">Privacy Policy</a>
-          </nav>
-        </div>
-      </footer>
+      {/* Decorative Abstract Element */}
+      <div className="fixed top-12 right-12 hidden lg:block w-32 h-32 opacity-20 pointer-events-none">
+        <div className="w-full h-full border border-primary/40 rounded-full animate-[spin_20s_linear_infinite]"></div>
+        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-primary/40 -rotate-45"></div>
+        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-primary/40 rotate-45"></div>
+      </div>
     </div>
   );
 };

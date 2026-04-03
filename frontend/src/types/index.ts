@@ -16,6 +16,7 @@ export interface JobApplication {
   role: string;
   status: 'APPLIED' | 'INTERVIEW' | 'OFFER' | 'REJECTED';
   dateApplied: string;
+  interviewDate?: string;
   notes: string;
   jobLink: string;
   user: {

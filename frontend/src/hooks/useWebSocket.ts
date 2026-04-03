@@ -31,7 +31,6 @@ export const useWebSocket = ({ username, token, onNotification }: UseWebSocketPr
       },
       reconnectDelay: 5000,
       onConnect: () => {
-        console.log('WebSocket connected');
         client.subscribe(`/user/${username}/queue/notifications`, message => {
           const notification: Notification = JSON.parse(message.body);
           if (onNotification) {
@@ -40,10 +39,10 @@ export const useWebSocket = ({ username, token, onNotification }: UseWebSocketPr
         });
       },
       onDisconnect: () => {
-        console.log('WebSocket disconnected');
+        // Disconnected
       },
       onStompError: frame => {
-        console.error('STOMP error', frame);
+        // STOMP error
       },
     });
 

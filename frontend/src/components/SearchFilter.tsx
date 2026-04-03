@@ -22,51 +22,55 @@ const SearchFilter: React.FC<SearchFilterProps> = ({
   const hasFilters = searchQuery || startDate || endDate;
 
   return (
-    <div className="backdrop-blur-xl bg-gradient-to-br from-purple-900/20 to-blue-900/20 border border-purple-400/30 rounded-2xl p-6 mb-8">
+    <div className="bg-surface-container ghost-border rounded-xl p-6 mb-8">
       <div className="flex flex-col gap-6">
         {/* Title */}
         <div>
-          <h3 className="text-lg font-semibold text-white mb-1">Advanced Filters</h3>
-          <p className="text-sm text-gray-400">Search and filter your job applications</p>
+          <h3 className="text-sm font-bold tracking-widest text-white uppercase mb-1">Advanced Filters</h3>
+          <p className="text-xs text-on-surface-variant">Search and filter your job applications</p>
         </div>
 
         {/* Search Input */}
         <div>
-          <label className="block text-sm font-medium text-purple-200 mb-2">
+          <label className="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-1">
             Search by Company or Role
           </label>
-          <input
-            type="text"
-            placeholder="e.g., Google, Senior Developer..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full px-4 py-3 bg-white/5 border border-purple-400/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-400/60 focus:bg-white/10 transition"
-          />
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg group-focus-within:text-primary transition-colors">
+              search
+            </span>
+            <input
+              type="text"
+              placeholder="e.g., Google, Senior Developer..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="w-full bg-surface-container-lowest ghost-border rounded-lg py-3 pl-10 pr-4 text-sm text-white placeholder:text-outline/50 focus:outline-none focus:ring-1 focus:ring-primary/80 transition-all duration-300"
+            />
+          </div>
         </div>
 
         {/* Date Range */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-purple-200 mb-2">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-1">
               From Date
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-purple-400/30 rounded-lg text-white focus:outline-none focus:border-purple-400/60 focus:bg-white/10 transition"
+              className="w-full bg-surface-container-lowest ghost-border rounded-lg py-3 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary/80 transition-all duration-300"
             />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-purple-200 mb-2">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-1">
               To Date
             </label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-purple-400/30 rounded-lg text-white focus:outline-none focus:border-purple-400/60 focus:bg-white/10 transition"
+              className="w-full bg-surface-container-lowest ghost-border rounded-lg py-3 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary/80 transition-all duration-300"
             />
           </div>
         </div>
@@ -74,25 +78,25 @@ const SearchFilter: React.FC<SearchFilterProps> = ({
         {/* Active Filters Display */}
         {hasFilters && (
           <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs font-medium text-purple-300">Active filters:</span>
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Active:</span>
             {searchQuery && (
-              <span className="px-3 py-1 bg-purple-500/30 border border-purple-400/50 rounded-full text-xs text-purple-100">
+              <span className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[10px] font-bold text-primary uppercase tracking-wider">
                 Search: {searchQuery}
               </span>
             )}
             {startDate && (
-              <span className="px-3 py-1 bg-blue-500/30 border border-blue-400/50 rounded-full text-xs text-blue-100">
+              <span className="px-3 py-1 bg-secondary-container/10 border border-secondary/20 rounded-full text-[10px] font-bold text-secondary uppercase tracking-wider">
                 From: {startDate}
               </span>
             )}
             {endDate && (
-              <span className="px-3 py-1 bg-blue-500/30 border border-blue-400/50 rounded-full text-xs text-blue-100">
+              <span className="px-3 py-1 bg-secondary-container/10 border border-secondary/20 rounded-full text-[10px] font-bold text-secondary uppercase tracking-wider">
                 To: {endDate}
               </span>
             )}
             <button
               onClick={onReset}
-              className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 border border-red-400/50 rounded-full text-xs text-red-200 transition"
+              className="px-3 py-1 bg-error/10 hover:bg-error/20 border border-error/20 rounded-full text-[10px] font-bold text-error uppercase tracking-wider transition-colors"
             >
               Clear All
             </button>

@@ -35,6 +35,7 @@ public class JobApplicationService {
         app.setRole(request.getRole());
         app.setStatus(JobApplication.Status.valueOf(request.getStatus()));
         app.setDateApplied(request.getDateApplied());
+        app.setInterviewDate(request.getInterviewDate());
         app.setNotes(request.getNotes());
         app.setJobLink(request.getJobLink());
         app.setUser(user);
@@ -57,6 +58,7 @@ public class JobApplicationService {
         app.setRole(request.getRole());
         app.setStatus(JobApplication.Status.valueOf(request.getStatus()));
         app.setDateApplied(request.getDateApplied());
+        app.setInterviewDate(request.getInterviewDate());
         app.setNotes(request.getNotes());
         app.setJobLink(request.getJobLink());
         JobApplication saved = jobApplicationRepository.save(app);
