@@ -41,7 +41,7 @@ export const useWebSocket = ({ username, token, onNotification }: UseWebSocketPr
       onDisconnect: () => {
         // Disconnected
       },
-      onStompError: frame => {
+      onStompError: () => {
         // STOMP error
       },
     });

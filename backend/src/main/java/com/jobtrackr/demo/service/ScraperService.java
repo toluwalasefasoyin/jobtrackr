@@ -19,8 +19,8 @@ public class ScraperService {
 
     public List<Map<String, String>> scrapeRemoteJobs(String role) {
         List<Map<String, String>> jobList = new ArrayList<>();
+        String encodedRole = URLEncoder.encode(role, StandardCharsets.UTF_8);
         try {
-            String encodedRole = URLEncoder.encode(role, StandardCharsets.UTF_8);
             String url = "https://remoteok.com/remote-" + encodedRole + "-jobs";
             
             Document doc = Jsoup.connect(url)

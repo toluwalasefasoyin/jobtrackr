@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 const SESSION_DURATION = 15 * 60; // 15 minutes
 
 export const useSessionTimer = () => {
-  const [timeLeft, setTimeLeft] = useState(SESSION_DURATION);
+  const [, setTimeLeft] = useState(SESSION_DURATION);
   const [showModal, setShowModal] = useState(false);
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
