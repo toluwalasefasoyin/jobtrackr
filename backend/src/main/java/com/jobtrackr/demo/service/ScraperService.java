@@ -52,7 +52,7 @@ public class ScraperService {
             Map<String, String> mock = new HashMap<>();
             mock.put("title", "Senior " + role + " Developer");
             mock.put("company", "Tech Flow Inc");
-            mock.put("link", "#");
+            mock.put("link", "https://www.google.com/search?q=" + encodedRole + "+remote+jobs");
             jobList.add(mock);
         }
         return jobList;
