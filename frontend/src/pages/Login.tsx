@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import type { AuthResponse } from '../types';
@@ -13,6 +13,17 @@ const Login = () => {
   const [timerCount, setTimerCount] = useState(0);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const googleUsername = searchParams.get('username');
+
+    if (token && googleUsername) {
+      login(token, googleUsername);
+      navigate('/dashboard', { replace: true });
+    }
+  }, [searchParams, login, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,31 +77,31 @@ const Login = () => {
           </div>
 
           {/* Form Side */}
-          <div className="lg:col-span-7 p-8 md:p-16 flex flex-col justify-center bg-white dark:bg-inverse-surface">
+          <div className="lg:col-span-7 p-8 md:p-16 flex flex-col justify-center bg-white">
             <div className="max-w-md mx-auto w-full">
               <div className="mb-10 lg:hidden text-center">
                 <h1 className="font-headline font-extrabold text-primary text-2xl tracking-tight">JobTrackr</h1>
               </div>
 
               <header className="mb-10">
-                <h3 className="font-headline font-bold text-2xl text-on-surface mb-2">Welcome Back</h3>
-                <p className="text-on-surface-variant text-sm">Please enter your details to access your curator dashboard.</p>
+                <h3 className="font-headline font-bold text-2xl text-black mb-2">Welcome Back</h3>
+                <p className="text-black text-sm">Please enter your details to access your curator dashboard.</p>
               </header>
 
               {error && (
-                <div className="mb-6 px-4 py-3 bg-error-container border border-error-container rounded-lg text-on-error-container text-sm">
+                <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                   {error}
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant ml-1 font-semibold">Username</label>
+                  <label className="font-label text-[11px] uppercase tracking-widest text-black ml-1 font-bold">Username</label>
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full bg-surface-container-low border-none rounded-lg px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-outline-variant"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-4 text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all placeholder:text-slate-400"
                     placeholder="curator@executive.com"
                     required
                   />
@@ -98,7 +109,7 @@ const Login = () => {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center px-1">
-                    <label className="font-label text-[11px] uppercase tracking-widest text-on-surface-variant font-semibold">Password</label>
+                    <label className="font-label text-[11px] uppercase tracking-widest text-black font-bold">Password</label>
                     <a className="text-xs text-primary font-semibold hover:underline" href="#">Forgot?</a>
                   </div>
                   <div className="relative">
@@ -106,14 +117,14 @@ const Login = () => {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-surface-container-low border-none rounded-lg px-4 py-4 pr-12 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-outline-variant"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-4 pr-12 text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all placeholder:text-slate-400"
                       placeholder="••••••••"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors"
                     >
                       {showPassword ? '👁️' : '👁️‍🗨️'}
                     </button>
@@ -124,15 +135,15 @@ const Login = () => {
                   <input
                     type="checkbox"
                     id="remember"
-                    className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary"
+                    className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
                   />
-                  <label className="text-sm text-on-surface-variant" htmlFor="remember">Remember me for 30 days</label>
+                  <label className="text-sm text-black" htmlFor="remember">Remember me for 30 days</label>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold py-4 rounded-full transition-all active:scale-[0.98] shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-primary text-black font-headline font-bold py-4 rounded-full transition-all active:scale-[0.98] shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -148,23 +159,26 @@ const Login = () => {
               {/* Divider */}
               <div className="relative my-10">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-outline-variant/30"></div>
+                  <div className="w-full border-t border-slate-200"></div>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase tracking-widest bg-white dark:bg-inverse-surface px-4">
-                  <span className="text-on-surface-variant">Or continue with</span>
+                <div className="relative flex justify-center text-[10px] uppercase tracking-widest bg-white px-4">
+                  <span className="text-slate-400 font-bold">Or continue with</span>
                 </div>
               </div>
 
               {/* Social Button */}
               <div className="grid grid-cols-1 gap-4">
-                <button className="flex items-center justify-center space-x-3 w-full bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant font-semibold py-4 rounded-full transition-all border border-outline-variant/10">
+                <a 
+                  href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/google`}
+                  className="flex items-center justify-center space-x-3 w-full bg-white hover:bg-slate-50 text-slate-700 font-bold py-4 rounded-full transition-all border border-slate-200 shadow-sm"
+                >
                   <img alt="Google" className="w-5 h-5" src="https://www.gstatic.com/firebaseapp/v8.10.0/images/favicon.png" />
                   <span>Sign in with Google</span>
-                </button>
+                </a>
               </div>
 
               <footer className="mt-10 text-center">
-                <p className="text-on-surface-variant text-sm">
+                <p className="text-slate-500 text-sm font-medium">
                   New to the platform?{' '}
                   <Link to="/register" className="text-primary font-bold hover:underline">
                     Register Account

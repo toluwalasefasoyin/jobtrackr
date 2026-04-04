@@ -20,9 +20,11 @@ public class ScraperController {
     @GetMapping("/scrape")
     public ResponseEntity<List<Map<String, String>>> scrapeJobs(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam String role) {
+            @RequestParam String role,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String workType) {
         
-        List<Map<String, String>> jobs = scraperService.scrapeRemoteJobs(role);
+        List<Map<String, String>> jobs = scraperService.scrapeJobs(role, location, workType);
         return ResponseEntity.ok(jobs);
     }
 }

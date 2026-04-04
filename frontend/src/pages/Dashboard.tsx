@@ -40,9 +40,11 @@ const Dashboard = () => {
   const [endDate, setEndDate] = useState('');
   const [showDiscoverModal, setShowDiscoverModal] = useState(false);
   const [scrapeRole, setScrapeRole] = useState('');
-  const [scrapedJobs, setScrapedJobs] = useState<{title: string, company: string, link: string}[]>([]);
+  const [scrapedJobs, setScrapedJobs] = useState<{title: string, company: string, link: string, source?: string, location?: string, workType?: string}[]>([]);
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeError, setScrapeError] = useState('');
+  const [scrapeLocation, setScrapeLocation] = useState('');
+  const [scrapeWorkType, setScrapeWorkType] = useState('ALL');
   const { logout, username, token } = useAuth();
   const navigate = useNavigate();
 
@@ -113,7 +115,8 @@ const Dashboard = () => {
     setIsScraping(true);
     setScrapeError('');
     try {
-      const res = await api.get(`/jobs/scrape?role=${encodeURIComponent(scrapeRole)}`);
+      const workTypeParam = scrapeWorkType === 'ALL' ? '' : scrapeWorkType.replace('-', '');
+      const res = await api.get(`/jobs/scrape?role=${encodeURIComponent(scrapeRole)}&location=${encodeURIComponent(scrapeLocation)}&workType=${workTypeParam}`);
       setScrapedJobs(res.data);
     } catch (err) {
       setScrapeError('Failed to fetch jobs.');
@@ -309,6 +312,13 @@ const Dashboard = () => {
           <span className="material-symbols-outlined text-[20px]">add</span>
           Add Application
         </button>
+        <button
+           onClick={() => setShowDiscoverModal(true)}
+           className="flex items-center justify-center gap-2 bg-surface-container-high text-tertiary px-6 py-3 rounded-xl font-bold text-sm tracking-tight hover:bg-surface-bright active:scale-95 transition-all ghost-border"
+        >
+           <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
+           Discover Jobs
+        </button>
       </section>
 
       {/* Applications Table */}
@@ -418,13 +428,6 @@ const Dashboard = () => {
             <p className="text-xs text-on-surface-variant/50">
               Showing {filtered.length} of {applications.length} total applications
             </p>
-            <button
-               onClick={() => setShowDiscoverModal(true)}
-               className="flex items-center gap-2 px-5 py-2.5 bg-tertiary/10 text-tertiary rounded-xl ghost-border hover:bg-tertiary/20 transition-all font-bold text-xs uppercase tracking-widest min-w-fit"
-            >
-               <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-               Discover Jobs
-            </button>
           </footer>
         </section>
       )}
@@ -450,25 +453,53 @@ const Dashboard = () => {
                </button>
             </div>
 
-            <div className="p-6 flex-shrink-0">
+            <div className="p-6 flex-shrink-0 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Role</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Senior React Developer"
+                    className="w-full bg-surface-container-lowest ghost-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-tertiary/80 transition-all"
+                    value={scrapeRole}
+                    onChange={(e) => setScrapeRole(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Location</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., San Francisco or Remote"
+                    className="w-full bg-surface-container-lowest ghost-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-tertiary/80 transition-all"
+                    value={scrapeLocation}
+                    onChange={(e) => setScrapeLocation(e.target.value)}
+                  />
+                </div>
+              </div>
+
               <div className="flex gap-4">
-                <input
-                  type="text"
-                  placeholder="e.g., Senior React Developer"
-                  className="flex-1 bg-surface-container-lowest ghost-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-tertiary/80 transition-all"
-                  value={scrapeRole}
-                  onChange={(e) => setScrapeRole(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleScrapeJobs()}
-                />
+                <div className="flex-1 flex items-center gap-2 p-1 bg-surface-container-lowest rounded-xl ghost-border">
+                  {['ALL', 'REMOTE', 'HYBRID', 'ON-SITE'].map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setScrapeWorkType(type)}
+                      className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${
+                        scrapeWorkType === type ? 'bg-tertiary/20 text-tertiary' : 'text-on-surface-variant hover:text-white'
+                      }`}
+                    >
+                      {type === 'ALL' ? 'Any' : type.replace('-', ' ')}
+                    </button>
+                  ))}
+                </div>
                 <button
                   onClick={handleScrapeJobs}
                   disabled={isScraping || !scrapeRole.trim()}
-                  className="bg-gradient-to-br from-tertiary to-tertiary-container flex items-center gap-2 px-6 py-3 rounded-xl text-on-primary-fixed font-bold disabled:opacity-50 ghost-border hover:brightness-110 shadow-[0_0_15px_rgba(255,183,131,0.2)] transition-all"
+                  className="bg-gradient-to-br from-tertiary to-tertiary-container flex items-center gap-2 px-8 py-3 rounded-xl text-on-primary-fixed font-bold disabled:opacity-50 ghost-border hover:brightness-110 shadow-[0_0_15px_rgba(255,183,131,0.2)] transition-all"
                 >
                   {isScraping ? <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span> : 'Search'}
                 </button>
               </div>
-              {scrapeError && <p className="text-error text-xs font-bold uppercase tracking-widest mt-4 pl-1">{scrapeError}</p>}
+              {scrapeError && <p className="text-error text-xs font-bold uppercase tracking-widest mt-2 pl-1">{scrapeError}</p>}
             </div>
             
             <div className="p-6 pt-0 overflow-y-auto custom-scrollbar flex-1">
@@ -484,7 +515,24 @@ const Dashboard = () => {
                   <div key={idx} className="bg-surface-container-lowest ghost-border rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 group hover:bg-surface-container/50 transition-colors">
                     <div>
                       <h4 className="text-white text-sm font-bold tracking-tight mb-1 group-hover:text-tertiary transition-colors">{job.title}</h4>
-                      <p className="text-on-surface-variant text-xs">{job.company}</p>
+                      <div className="flex items-center gap-2 text-[10px] text-on-surface-variant font-medium flex-wrap">
+                        <span className="text-tertiary font-bold">{job.source}</span>
+                        <span>•</span>
+                        <span>{job.company}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[12px]">location_on</span>
+                          {job.location}
+                        </span>
+                        {job.workType && (
+                          <>
+                            <span>•</span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary text-[9px] font-bold">
+                              {job.workType}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <a href={job.link} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-white/10 transition-colors ghost-border">
