@@ -132,6 +132,7 @@ const Dashboard = () => {
       role: app.role,
       status: app.status,
       dateApplied: app.dateApplied,
+      interviewDate: app.interviewDate || '',
       notes: app.notes || '',
       jobLink: app.jobLink || '',
     });
@@ -139,9 +140,16 @@ const Dashboard = () => {
   };
 
   const filtered = applications.filter((app) => {
-    if (filter !== 'ALL' && app.status !== filter) return false;
+    // Filter by status (case-insensitive)
+    if (filter !== 'ALL') {
+      const appStatus = (app.status || '').toUpperCase().trim();
+      const filterStatus = filter.toUpperCase().trim();
+      if (appStatus !== filterStatus) return false;
+    }
+    
+    // Filter by search query
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase().trim();
       if (
         !app.company.toLowerCase().includes(query) &&
         !app.role.toLowerCase().includes(query)
@@ -149,8 +157,11 @@ const Dashboard = () => {
         return false;
       }
     }
+    
+    // Filter by date range
     if (startDate && app.dateApplied < startDate) return false;
     if (endDate && app.dateApplied > endDate) return false;
+    
     return true;
   });
 
@@ -179,6 +190,16 @@ const Dashboard = () => {
 
   return (
     <div className="px-6 lg:px-12 py-8 pb-12">
+      <style>{`
+        select option {
+          background-color: #1a1a2e;
+          color: #ffffff;
+          padding: 8px;
+        }
+        select option:hover {
+          background-color: #16213e;
+        }
+      `}</style>
       {/* Header & Breadcrumb */}
       <header className="mb-10">
         <div className="flex items-center gap-2 text-xs font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-2">
@@ -393,11 +414,19 @@ const Dashboard = () => {
                         </div>
                       </td>
                       <td className="px-8 py-6">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${style.badge}`}
-                        >
-                          {style.label}
-                        </span>
+                        <div className="flex flex-col gap-2">
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest w-fit ${style.badge}`}
+                          >
+                            {style.label}
+                          </span>
+                          {app.status === 'INTERVIEW' && app.interviewDate && (
+                            <div className="flex items-center gap-1.5 text-[10px] text-tertiary font-semibold">
+                              <span className="material-symbols-outlined text-[12px]">event</span>
+                              {formatDate(app.interviewDate)}
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-8 py-6 text-sm text-on-surface-variant font-medium">
                         {formatDate(app.dateApplied)}
@@ -478,13 +507,15 @@ const Dashboard = () => {
               </div>
 
               <div className="flex gap-4">
-                <div className="flex-1 flex items-center gap-2 p-1 bg-surface-container-lowest rounded-xl ghost-border">
+                <div className="flex-1 flex items-center gap-2 p-2 bg-surface-container-lowest rounded-xl ghost-border">
                   {['ALL', 'REMOTE', 'HYBRID', 'ON-SITE'].map((type) => (
                     <button
                       key={type}
                       onClick={() => setScrapeWorkType(type)}
-                      className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${
-                        scrapeWorkType === type ? 'bg-tertiary/20 text-tertiary' : 'text-on-surface-variant hover:text-white'
+                      className={`flex-1 py-3 px-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all cursor-pointer ${
+                        scrapeWorkType === type 
+                          ? 'bg-tertiary text-on-primary-fixed shadow-lg shadow-tertiary/30 scale-105' 
+                          : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-white'
                       }`}
                     >
                       {type === 'ALL' ? 'Any' : type.replace('-', ' ')}
@@ -606,7 +637,7 @@ const Dashboard = () => {
                     Status
                   </label>
                   <select
-                    className="w-full bg-surface-container-low ghost-border rounded-lg py-3 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary/80 transition-all appearance-none"
+                    className="w-full bg-surface-container-lowest ghost-border rounded-lg py-3 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary/80 transition-all appearance-none cursor-pointer"
                     value={form.status}
                     onChange={(e) => setForm({ ...form, status: e.target.value })}
                   >
@@ -628,18 +659,21 @@ const Dashboard = () => {
                 </div>
               </div>
               
-              <div className="mt-4">
+              {form.status === 'INTERVIEW' && (
+              <div className="mt-4 animate-in fade-in duration-300">
                   <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[14px]">calendar_month</span>
+                    <span className="material-symbols-outlined text-[14px]">event</span>
                     Interview Date
                   </label>
                   <input
-                    className="w-full bg-surface-container-low ghost-border rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary/80 transition-all [color-scheme:dark] placeholder:text-outline/50"
+                    className="w-full bg-surface-container-lowest ghost-border rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-tertiary/80 transition-all [color-scheme:dark] placeholder:text-outline/50"
                     type="date"
                     value={form.interviewDate || ''}
                     onChange={(e) => setForm({ ...form, interviewDate: e.target.value })}
+                    required={form.status === 'INTERVIEW'}
                   />
               </div>
+              )}
 
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-1">
